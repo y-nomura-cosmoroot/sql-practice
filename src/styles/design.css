@@ -1,0 +1,227 @@
+/* ===== 設計ビルダー ===== */
+.d-table {
+  border: 1px solid #d1d5db;
+  margin-bottom: 14px;
+}
+
+.d-table-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--slate);
+  color: #fff;
+  padding: 8px 12px;
+}
+
+.d-table-name {
+  font-family: var(--head-font);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  font-size: 0.95rem;
+}
+
+.d-mini {
+  padding: 4px 10px;
+  border: none;
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+  cursor: pointer;
+  font-family: var(--head-font);
+  font-weight: 700;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+}
+
+.d-mini:hover {
+  background: rgba(255, 255, 255, 0.35);
+}
+
+.d-cols {
+  padding: 8px 12px;
+}
+
+.d-col-head,
+.d-col-row {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr auto auto auto;
+  gap: 8px;
+  align-items: center;
+}
+
+.d-col-head {
+  font-family: var(--head-font);
+  font-weight: 700;
+  font-size: 0.66rem;
+  color: var(--mid);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding-bottom: 4px;
+  border-bottom: 1px solid #e5e7eb;
+  margin-bottom: 6px;
+}
+
+.d-col-row {
+  padding: 4px 0;
+}
+
+.d-col-name {
+  font-family: 'Courier New', monospace;
+  font-size: 0.88rem;
+  color: var(--mauve);
+  font-weight: 700;
+}
+
+.d-sel {
+  padding: 5px 6px;
+  border: 1px solid #d1d5db;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: 'Courier New', monospace;
+  font-size: 0.8rem;
+}
+
+.d-chk {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  font-family: var(--head-font);
+  font-weight: 700;
+  font-size: 0.68rem;
+  color: var(--ink);
+}
+
+.d-chk input {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--slate);
+}
+
+.d-col-del {
+  border: none;
+  background: transparent;
+  color: var(--mauve);
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.d-addcol {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px dashed #e5e7eb;
+}
+
+.d-addcol .lbl {
+  font-family: var(--head-font);
+  font-weight: 700;
+  font-size: 0.68rem;
+  color: var(--mid);
+  text-transform: uppercase;
+  margin-right: 4px;
+}
+
+.d-pill {
+  padding: 4px 10px;
+  border: 1px solid #d1d5db;
+  background: var(--bg);
+  color: var(--mauve);
+  cursor: pointer;
+  font-family: 'Courier New', monospace;
+  font-size: 0.8rem;
+}
+
+.d-pill:hover {
+  border-color: var(--slate);
+  background: var(--card);
+}
+
+/* 「テーブルを追加」セクション */
+.d-addtable-section {
+  margin-top: 10px;
+}
+
+.d-addtable {
+  margin-top: 6px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+.d-tablepill {
+  padding: 7px 14px;
+  border: 1px solid var(--slate);
+  background: var(--bg);
+  color: var(--slate);
+  cursor: pointer;
+  font-family: var(--head-font);
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 0.78rem;
+  letter-spacing: 0.02em;
+}
+
+.d-tablepill:hover {
+  background: var(--slate);
+  color: #fff;
+}
+
+/* 設計プレビュー */
+.d-preview-tbl {
+  margin-bottom: 14px;
+}
+
+.d-preview-name {
+  font-family: var(--head-font);
+  font-weight: 700;
+  color: var(--slate);
+  text-transform: uppercase;
+  font-size: 0.92rem;
+  letter-spacing: 0.02em;
+}
+
+.d-preview-col {
+  font-family: 'Courier New', monospace;
+  font-size: 0.84rem;
+  color: var(--ink);
+  padding-left: 14px;
+}
+
+.d-preview-col .tag {
+  color: var(--teal);
+  font-weight: 700;
+}
+
+.d-preview-col .pktag {
+  color: var(--slate);
+  font-weight: 700;
+}
+
+/* 判定結果 */
+.d-check {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  padding: 6px 0;
+  font-size: 0.88rem;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.d-check .ic {
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.d-check.ok .ic {
+  color: var(--sage);
+}
+
+.d-check.ng .ic {
+  color: var(--mauve);
+}

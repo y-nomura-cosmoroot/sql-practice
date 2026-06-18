@@ -1,0 +1,72 @@
+.schema-table {
+  margin-bottom: 18px;
+}
+
+.schema-name {
+  font-family: var(--head-font);
+  font-weight: 700;
+  color: var(--slate);
+  font-size: 0.95rem;
+  margin-bottom: 5px;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+/* テーブル名の横に添える日本語の説明 */
+.schema-desc {
+  color: var(--mid);
+  font-weight: 400;
+  font-size: 0.8rem;
+}
+
+.schema-cols {
+  font-size: 0.84rem;
+  color: var(--ink);
+}
+
+.schema-cols .col {
+  padding: 1px 0;
+}
+
+.schema-cols .pk {
+  color: var(--slate);
+  font-weight: 700;
+}
+
+.schema-cols .fk {
+  color: var(--teal);
+  font-weight: 700;
+}
+
+details summary {
+  cursor: pointer;
+  color: var(--slate);
+  font-family: var(--head-font);
+  font-weight: 700;
+  font-size: 0.78rem;
+  margin-top: 8px;
+  user-select: none;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.hint-text {
+  background: var(--card);
+  border-left: 4px solid var(--slate);
+  padding: 10px 14px;
+  font-size: 0.9rem;
+  color: var(--ink);
+  margin-top: 12px;
+}
+
+.answer-code {
+  background: var(--card);
+  border-left: 4px solid var(--ink);
+  padding: 11px 14px;
+  font-family: 'Courier New', monospace;
+  font-size: 0.86rem;
+  color: var(--ink);
+  margin-top: 12px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}

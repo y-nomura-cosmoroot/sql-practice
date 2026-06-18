@@ -1,0 +1,93 @@
+.tabs {
+  display: flex;
+  gap: 0;
+  margin-bottom: 16px;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.tab {
+  padding: 10px 18px;
+  border: none;
+  background: transparent;
+  color: var(--mid);
+  cursor: pointer;
+  font-family: var(--head-font);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  font-size: 0.8rem;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -2px;
+  transition: all 0.12s;
+  min-height: 44px;
+}
+
+.tab:hover {
+  color: var(--ink);
+}
+
+.tab.active {
+  color: var(--slate);
+  border-bottom-color: var(--slate);
+}
+
+.tab.flash {
+  animation: tabFlash 0.9s ease;
+}
+
+@keyframes tabFlash {
+  0%,
+  100% {
+    background: transparent;
+  }
+  30% {
+    background: var(--card);
+  }
+}
+
+/* 結果テーブル */
+table.data {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+  font-size: 0.86rem;
+}
+
+table.data th,
+table.data td {
+  padding: 8px 11px;
+  text-align: left;
+  border: 1px solid #e5e7eb;
+}
+
+table.data th {
+  background: var(--slate);
+  color: #fff;
+  font-family: var(--head-font);
+  font-weight: 700;
+  font-size: 0.8rem;
+}
+
+table.data td {
+  background: var(--bg);
+  color: var(--ink);
+}
+
+table.data tr:nth-child(even) td {
+  background: var(--card);
+}
+
+.table-scroll {
+  overflow-x: auto;
+}
+
+.res-label {
+  font-family: var(--head-font);
+  font-weight: 700;
+  font-size: 0.78rem;
+  color: var(--mid);
+  margin-top: 14px;
+  margin-bottom: 2px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}

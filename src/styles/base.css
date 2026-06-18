@@ -1,0 +1,40 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--body-font);
+  font-weight: 300;
+  background: var(--bg);
+  color: var(--ink);
+  line-height: 1.65;
+  padding: 24px 20px;
+}
+
+.wrap {
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
+/* 汎用ユーティリティ */
+.muted {
+  color: var(--mid);
+}
+
+.placeholder-hint {
+  color: var(--mid);
+  font-size: 0.9rem;
+  padding: 4px;
+}
+
+.loading {
+  text-align: center;
+  padding: 50px;
+  color: var(--mid);
+  font-family: var(--head-font);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}

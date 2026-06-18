@@ -1,0 +1,128 @@
+[
+  {
+    "cls": "lv-basic",
+    "levelLabel": "基本",
+    "q": "すべての製品の製品名(product_name)と単価(unit_price)を表示してください。",
+    "hint": "SELECT で列を、FROM でテーブルを指定します。",
+    "answer": "SELECT product_name, unit_price FROM products;"
+  },
+  {
+    "cls": "lv-basic",
+    "levelLabel": "基本(WHERE)",
+    "q": "地域(region)が「東京」の顧客の顧客名(customer_name)を表示してください。",
+    "hint": "WHERE 句で条件を指定します。",
+    "answer": "SELECT customer_name FROM customers WHERE region = '東京';"
+  },
+  {
+    "cls": "lv-basic",
+    "levelLabel": "基本(WHERE)",
+    "q": "単価(unit_price)が30000円以上の製品の製品名と単価を表示してください。",
+    "hint": ">= で「以上」を表します。",
+    "answer": "SELECT product_name, unit_price FROM products WHERE unit_price >= 30000;"
+  },
+  {
+    "cls": "lv-sort",
+    "levelLabel": "並び替え",
+    "q": "すべての製品を単価(unit_price)の高い順に、製品名と単価を表示してください。",
+    "hint": "ORDER BY 列名 DESC で降順。",
+    "answer": "SELECT product_name, unit_price FROM products ORDER BY unit_price DESC;"
+  },
+  {
+    "cls": "lv-sort",
+    "levelLabel": "並び替え+LIMIT",
+    "q": "単価が最も高い製品トップ3の製品名と単価を表示してください。",
+    "hint": "ORDER BY ... DESC の後に LIMIT 3。",
+    "answer": "SELECT product_name, unit_price FROM products ORDER BY unit_price DESC LIMIT 3;"
+  },
+  {
+    "cls": "lv-agg",
+    "levelLabel": "集計(COUNT)",
+    "q": "注文(orders)の件数を数えてください。(列名は任意)",
+    "hint": "COUNT ( * ) で行数を数えます。",
+    "answer": "SELECT COUNT(*) FROM orders;"
+  },
+  {
+    "cls": "lv-agg",
+    "levelLabel": "集計(SUM)",
+    "q": "注文(orders)の数量(quantity)の合計を求めてください。(列名は任意)",
+    "hint": "SUM ( quantity )。",
+    "answer": "SELECT SUM(quantity) FROM orders;"
+  },
+  {
+    "cls": "lv-agg",
+    "levelLabel": "集計(AVG)",
+    "q": "製品(products)の単価(unit_price)の平均を求めてください。(列名は任意)",
+    "hint": "AVG ( unit_price )。",
+    "answer": "SELECT AVG(unit_price) FROM products;"
+  },
+  {
+    "cls": "lv-group",
+    "levelLabel": "グループ集計",
+    "q": "カテゴリ(category)ごとの製品数を、カテゴリ名と件数の2列で表示してください。",
+    "hint": "GROUP BY category と COUNT ( * )。",
+    "answer": "SELECT category, COUNT(*) FROM products GROUP BY category;"
+  },
+  {
+    "cls": "lv-group",
+    "levelLabel": "グループ集計",
+    "q": "カテゴリ(category)ごとの単価(unit_price)の平均を、カテゴリ名と平均単価で表示してください。",
+    "hint": "GROUP BY と AVG を組み合わせます。",
+    "answer": "SELECT category, AVG(unit_price) FROM products GROUP BY category;"
+  },
+  {
+    "cls": "lv-group",
+    "levelLabel": "GROUP BY+HAVING",
+    "q": "製品が2件以上あるカテゴリ(category)だけを、カテゴリ名と件数で表示してください。",
+    "hint": "グループへの条件は HAVING。HAVING COUNT ( * ) >= 2。",
+    "answer": "SELECT category, COUNT(*) FROM products GROUP BY category HAVING COUNT(*) >= 2;"
+  },
+  {
+    "cls": "lv-join",
+    "levelLabel": "結合(JOIN)",
+    "q": "各注文について、顧客名(customer_name)と数量(quantity)を表示してください。",
+    "hint": "orders と customers を customer_id で JOIN。列は テーブル.列 で指定。",
+    "answer": "SELECT customers.customer_name, orders.quantity FROM orders JOIN customers ON orders.customer_id = customers.customer_id;"
+  },
+  {
+    "cls": "lv-join",
+    "levelLabel": "結合(JOIN)",
+    "q": "各注文について、製品名(product_name)・数量(quantity)・注文日(order_date)を表示してください。",
+    "hint": "orders と products を product_id で JOIN。",
+    "answer": "SELECT products.product_name, orders.quantity, orders.order_date FROM orders JOIN products ON orders.product_id = products.product_id;"
+  },
+  {
+    "cls": "lv-join",
+    "levelLabel": "複数JOIN",
+    "q": "地域(region)が「東京」の顧客が注文した製品名(product_name)と数量(quantity)を表示してください。",
+    "hint": "orders を customers と products の両方に JOIN し、WHERE で東京に絞る。",
+    "answer": "SELECT products.product_name, orders.quantity FROM orders JOIN customers ON orders.customer_id = customers.customer_id JOIN products ON orders.product_id = products.product_id WHERE customers.region = '東京';"
+  },
+  {
+    "cls": "lv-join",
+    "levelLabel": "JOIN+集計",
+    "q": "顧客ごとの注文金額合計（単価×数量の合計）を、顧客名と合計金額で表示してください。",
+    "hint": "3テーブルをJOINし、SUM ( products.unit_price * orders.quantity ) を顧客名でGROUP BY。",
+    "answer": "SELECT customers.customer_name, SUM(products.unit_price * orders.quantity) FROM orders JOIN customers ON orders.customer_id = customers.customer_id JOIN products ON orders.product_id = products.product_id GROUP BY customers.customer_name;"
+  },
+  {
+    "cls": "lv-sub",
+    "levelLabel": "サブクエリ(IN)",
+    "q": "一度でも注文された製品の製品名(product_name)を表示してください。",
+    "hint": "WHERE product_id IN ( SELECT product_id FROM orders )。",
+    "answer": "SELECT product_name FROM products WHERE product_id IN (SELECT product_id FROM orders);"
+  },
+  {
+    "cls": "lv-sub",
+    "levelLabel": "サブクエリ(EXISTS)",
+    "q": "注文をしたことがある顧客の顧客名(customer_name)を、EXISTSを使って表示してください。",
+    "hint": "WHERE EXISTS ( SELECT 1 FROM orders WHERE orders.customer_id = customers.customer_id )。",
+    "answer": "SELECT customer_name FROM customers WHERE EXISTS (SELECT 1 FROM orders WHERE orders.customer_id = customers.customer_id);"
+  },
+  {
+    "cls": "lv-sub",
+    "levelLabel": "サブクエリ(NOT EXISTS)",
+    "q": "一度も注文されていない製品の製品名(product_name)を表示してください。",
+    "hint": "WHERE NOT EXISTS ( SELECT 1 FROM orders WHERE orders.product_id = products.product_id )。",
+    "answer": "SELECT product_name FROM products WHERE NOT EXISTS (SELECT 1 FROM orders WHERE orders.product_id = products.product_id);"
+  }
+]

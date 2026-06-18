@@ -1,0 +1,165 @@
+/* ポップアップ */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(68, 84, 106, 0.55);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: 16px;
+}
+
+.overlay.show {
+  display: flex;
+  animation: fadeIn 0.18s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.modal {
+  background: var(--bg);
+  border-top: 6px solid var(--sage);
+  max-width: 440px;
+  width: 100%;
+  text-align: center;
+  padding: 32px 28px;
+  box-shadow: 0 12px 48px rgba(68, 84, 106, 0.25);
+  animation: pop 0.26s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+}
+
+.modal.ng {
+  border-top-color: var(--mauve);
+}
+
+@keyframes pop {
+  from {
+    transform: scale(0.85);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.modal .emoji {
+  font-size: 2.8rem;
+  line-height: 1;
+  margin-bottom: 10px;
+}
+
+.modal h3 {
+  font-family: var(--head-font);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--slate);
+  font-size: 1.5rem;
+  margin-bottom: 8px;
+}
+
+.modal.ng h3 {
+  color: var(--mauve);
+}
+
+.modal p {
+  color: var(--ink);
+  font-size: 0.95rem;
+  margin-bottom: 18px;
+  font-weight: 300;
+}
+
+.modal-progress {
+  font-family: var(--head-font);
+  font-weight: 700;
+  color: var(--mid);
+  font-size: 0.82rem;
+  margin-bottom: 20px;
+  letter-spacing: 0.02em;
+}
+
+.modal-btns {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.modal-btns button {
+  padding: 11px 22px;
+  border: none;
+  cursor: pointer;
+  font-family: var(--head-font);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  font-size: 0.82rem;
+  min-height: 44px;
+}
+
+.modal.info {
+  border-top-color: var(--slate);
+}
+
+.modal.info h3 {
+  color: var(--slate);
+}
+
+.modal.info .info-hint {
+  background: var(--card);
+  border-left: 4px solid var(--slate);
+  padding: 12px 16px;
+  font-size: 0.95rem;
+  color: var(--ink);
+  line-height: 1.7;
+}
+
+.modal.info .info-code {
+  background: var(--card);
+  border-left: 4px solid var(--ink);
+  padding: 12px 16px;
+  font-family: 'Courier New', monospace;
+  font-size: 0.88rem;
+  color: var(--ink);
+  white-space: pre-wrap;
+  word-break: break-word;
+  line-height: 1.7;
+}
+
+.modal-next {
+  background: var(--slate);
+  color: #fff;
+}
+.modal-next:hover {
+  background: var(--teal);
+}
+
+.modal-close {
+  background: var(--card);
+  color: var(--ink);
+}
+.modal-close:hover {
+  background: #e5e7eb;
+}
+
+/* 情報ポップアップ（ヒント・解答例）はやや広め＆左寄せ */
+.info-modal {
+  text-align: left;
+  max-width: 520px;
+}
+
+.info-modal-title {
+  text-align: center;
+}
+
+.info-modal-btns {
+  margin-top: 20px;
+}

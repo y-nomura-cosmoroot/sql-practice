@@ -1,0 +1,51 @@
+.btn-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+button.action {
+  padding: 10px 18px;
+  border: none;
+  cursor: pointer;
+  font-family: var(--head-font);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  font-size: 0.82rem;
+  transition: all 0.12s;
+  min-height: 44px;
+}
+
+.btn-run {
+  background: var(--slate);
+  color: #fff;
+}
+.btn-run:hover {
+  background: var(--teal);
+}
+
+.btn-check {
+  background: var(--sage);
+  color: #fff;
+}
+.btn-check:hover {
+  background: var(--teal);
+}
+
+.btn-ghost {
+  background: var(--card);
+  color: var(--ink);
+}
+.btn-ghost:hover {
+  background: #e5e7eb;
+}
+
+.btn-del {
+  background: var(--card);
+  color: var(--mauve);
+}
+.btn-del:hover {
+  background: #e5e7eb;
+}

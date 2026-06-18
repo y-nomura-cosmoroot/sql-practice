@@ -1,0 +1,119 @@
+/* SQL組み立てエリア */
+.build-area {
+  min-height: 66px;
+  background: var(--card);
+  border: 1px solid #e5e7eb;
+  padding: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-content: flex-start;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 11px;
+  font-family: 'Courier New', monospace;
+  font-size: 0.88rem;
+  cursor: pointer;
+  border: 1px solid transparent;
+  user-select: none;
+  transition: all 0.12s;
+}
+
+.chip.placed {
+  background: var(--slate);
+  color: #fff;
+}
+
+.chip.placed:hover {
+  background: var(--mauve);
+}
+
+.chip.placed:hover::after {
+  content: '✕';
+  font-size: 0.7rem;
+}
+
+.built-sql {
+  margin-top: 10px;
+  background: var(--card);
+  border-left: 4px solid var(--slate);
+  padding: 10px 14px;
+  font-family: 'Courier New', monospace;
+  font-size: 0.88rem;
+  color: var(--ink);
+  min-height: 22px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.built-sql .lbl {
+  color: var(--mid);
+}
+
+/* 「部品パレット」見出し */
+.palette-heading {
+  margin-top: 20px;
+}
+
+/* 部品パレット */
+.pal-group {
+  margin-bottom: 12px;
+}
+
+.pal-title {
+  font-family: var(--head-font);
+  font-weight: 700;
+  font-size: 0.7rem;
+  color: var(--mid);
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.pal-items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.tok {
+  padding: 7px 12px;
+  border: 1px solid #d1d5db;
+  background: var(--bg);
+  color: var(--ink);
+  cursor: pointer;
+  font-family: 'Courier New', monospace;
+  font-size: 0.86rem;
+  transition: all 0.12s;
+}
+
+.tok:hover {
+  border-color: var(--slate);
+  background: var(--card);
+}
+
+.tok.kw {
+  color: var(--slate);
+  font-weight: 700;
+}
+.tok.tb {
+  color: var(--ink);
+  font-weight: 700;
+}
+.tok.col {
+  color: var(--mauve);
+}
+.tok.fn {
+  color: var(--teal);
+  font-weight: 700;
+}
+.tok.op {
+  color: var(--mid);
+}
+.tok.val {
+  color: #320c2d;
+}

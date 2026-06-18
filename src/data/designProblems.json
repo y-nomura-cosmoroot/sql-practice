@@ -1,0 +1,124 @@
+[
+  {
+    "cls": "lv-d1",
+    "levelLabel": "基本(主キーと型)",
+    "q": "会員を管理するシステム。各会員は「会員ID・氏名・メールアドレス・生年月日」を持つ。これを1つのテーブルとして設計し、主キーと各列の型を指定してください。",
+    "hint": "会員IDが主キー(PK)。IDはINTEGER、氏名とメールはTEXT、生年月日はDATEが適切です。",
+    "tablePool": ["members", "orders"],
+    "columnPool": {
+      "members": ["member_id", "name", "email", "birth_date", "address", "order_id"]
+    },
+    "answer": {
+      "members": [
+        { "name": "member_id", "type": "INTEGER", "pk": true },
+        { "name": "name", "type": "TEXT" },
+        { "name": "email", "type": "TEXT" },
+        { "name": "birth_date", "type": "DATE" }
+      ]
+    },
+    "model": "members(member_id INTEGER PK, name TEXT, email TEXT, birth_date DATE)"
+  },
+  {
+    "cls": "lv-d2",
+    "levelLabel": "1対多(外部キー)",
+    "q": "顧客は複数の注文を行うが、1件の注文は必ず1人の顧客のもの（1対多）。顧客は「氏名・地域」、注文は「注文日・金額」を持つ。2テーブルに分け、外部キー(FK)を正しい側に置いてください。",
+    "hint": "「多」の側（orders）に顧客への外部キー customer_id を置きます。customers(customer_id PK, name, region) / orders(order_id PK, customer_id FK→customers, order_date, amount)。",
+    "tablePool": ["customers", "orders", "products"],
+    "columnPool": {
+      "customers": ["customer_id", "name", "region", "order_id", "amount"],
+      "orders": ["order_id", "customer_id", "order_date", "amount", "name", "region"],
+      "products": ["product_id", "product_name"]
+    },
+    "answer": {
+      "customers": [
+        { "name": "customer_id", "type": "INTEGER", "pk": true },
+        { "name": "name", "type": "TEXT" },
+        { "name": "region", "type": "TEXT" }
+      ],
+      "orders": [
+        { "name": "order_id", "type": "INTEGER", "pk": true },
+        { "name": "customer_id", "type": "INTEGER", "ref": "customers" },
+        { "name": "order_date", "type": "DATE" },
+        { "name": "amount", "type": "INTEGER" }
+      ]
+    },
+    "model": "customers(customer_id PK, name, region)\norders(order_id PK, customer_id FK→customers, order_date, amount)"
+  },
+  {
+    "cls": "lv-d3",
+    "levelLabel": "多対多(中間テーブル)",
+    "q": "学生は複数の科目を履修でき、1科目は複数の学生に履修される（多対多）。学生は「氏名」、科目は「科目名」を持ち、履修ごとに「成績」を記録する。多対多を正しく解消して設計してください。",
+    "hint": "多対多は中間テーブルで解消します。students(student_id PK, name) / courses(course_id PK, course_name) / enrollments(student_id PK+FK→students, course_id PK+FK→courses, grade)。中間テーブルは両IDを主キー(複合)かつ外部キーに。",
+    "tablePool": ["students", "courses", "enrollments", "teachers"],
+    "columnPool": {
+      "students": ["student_id", "name", "course_id"],
+      "courses": ["course_id", "course_name", "student_id"],
+      "enrollments": ["student_id", "course_id", "grade"],
+      "teachers": ["teacher_id", "name"]
+    },
+    "answer": {
+      "students": [
+        { "name": "student_id", "type": "INTEGER", "pk": true },
+        { "name": "name", "type": "TEXT" }
+      ],
+      "courses": [
+        { "name": "course_id", "type": "INTEGER", "pk": true },
+        { "name": "course_name", "type": "TEXT" }
+      ],
+      "enrollments": [
+        { "name": "student_id", "type": "INTEGER", "pk": true, "ref": "students" },
+        { "name": "course_id", "type": "INTEGER", "pk": true, "ref": "courses" },
+        { "name": "grade", "type": "TEXT" }
+      ]
+    },
+    "model": "students(student_id PK, name)\ncourses(course_id PK, course_name)\nenrollments(student_id PK FK→students, course_id PK FK→courses, grade)"
+  },
+  {
+    "cls": "lv-d4",
+    "levelLabel": "第3正規形(推移的従属)",
+    "q": "いま社員テーブルに「社員ID・氏名・部署ID・部署名」が入っており、部署名が部署IDに従属して冗長（同じ部署名が何度も重複）。推移的従属を除去するよう、2テーブルに正規化してください。",
+    "hint": "部署を独立させます。departments(department_id PK, department_name) / employees(employee_id PK, name, department_id FK→departments)。部署名は employees から取り除きます。",
+    "tablePool": ["employees", "departments"],
+    "columnPool": {
+      "employees": ["employee_id", "name", "department_id", "department_name"],
+      "departments": ["department_id", "department_name"]
+    },
+    "answer": {
+      "employees": [
+        { "name": "employee_id", "type": "INTEGER", "pk": true },
+        { "name": "name", "type": "TEXT" },
+        { "name": "department_id", "type": "INTEGER", "ref": "departments" }
+      ],
+      "departments": [
+        { "name": "department_id", "type": "INTEGER", "pk": true },
+        { "name": "department_name", "type": "TEXT" }
+      ]
+    },
+    "model": "employees(employee_id PK, name, department_id FK→departments)\ndepartments(department_id PK, department_name)"
+  },
+  {
+    "cls": "lv-d5",
+    "levelLabel": "第1正規形(繰り返しの排除)",
+    "q": "1件の注文に複数の商品が含まれる。1つの注文行に商品をいくつも詰め込む（繰り返し）のをやめ、明細を別テーブルに分けて設計してください。注文は「注文日」、明細は「商品名・数量」を持つ。",
+    "hint": "明細を行に展開します。orders(order_id PK, order_date) / order_items(order_item_id PK, order_id FK→orders, product_name, quantity)。",
+    "tablePool": ["orders", "order_items", "products"],
+    "columnPool": {
+      "orders": ["order_id", "order_date", "product_name", "quantity"],
+      "order_items": ["order_item_id", "order_id", "product_name", "quantity"],
+      "products": ["product_id", "product_name"]
+    },
+    "answer": {
+      "orders": [
+        { "name": "order_id", "type": "INTEGER", "pk": true },
+        { "name": "order_date", "type": "DATE" }
+      ],
+      "order_items": [
+        { "name": "order_item_id", "type": "INTEGER", "pk": true },
+        { "name": "order_id", "type": "INTEGER", "ref": "orders" },
+        { "name": "product_name", "type": "TEXT" },
+        { "name": "quantity", "type": "INTEGER" }
+      ]
+    },
+    "model": "orders(order_id PK, order_date)\norder_items(order_item_id PK, order_id FK→orders, product_name, quantity)"
+  }
+]

@@ -1,0 +1,32 @@
+[
+  {
+    "name": "customers",
+    "desc": "顧客",
+    "cols": [
+      { "c": "customer_id", "t": "INTEGER", "tag": "pk", "note": "主キー" },
+      { "c": "customer_name", "t": "TEXT" },
+      { "c": "region", "t": "TEXT", "note": "地域" }
+    ]
+  },
+  {
+    "name": "products",
+    "desc": "製品",
+    "cols": [
+      { "c": "product_id", "t": "INTEGER", "tag": "pk", "note": "主キー" },
+      { "c": "product_name", "t": "TEXT" },
+      { "c": "category", "t": "TEXT", "note": "カテゴリ" },
+      { "c": "unit_price", "t": "INTEGER", "note": "単価" }
+    ]
+  },
+  {
+    "name": "orders",
+    "desc": "注文",
+    "cols": [
+      { "c": "order_id", "t": "INTEGER", "tag": "pk", "note": "主キー" },
+      { "c": "customer_id", "t": "INTEGER", "tag": "fk", "note": "→customers" },
+      { "c": "product_id", "t": "INTEGER", "tag": "fk", "note": "→products" },
+      { "c": "quantity", "t": "INTEGER", "note": "数量" },
+      { "c": "order_date", "t": "TEXT", "note": "注文日" }
+    ]
+  }
+]

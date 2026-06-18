@@ -1,0 +1,32 @@
+[
+  {
+    "title": "キーワード",
+    "cls": "kw",
+    "items": ["SELECT", "FROM", "WHERE", "GROUP BY", "HAVING", "ORDER BY", "DESC", "LIMIT", "JOIN", "ON", "IN", "EXISTS", "NOT EXISTS"]
+  },
+  {
+    "title": "テーブル",
+    "cls": "tb",
+    "items": ["customers", "products", "orders"]
+  },
+  {
+    "title": "列",
+    "cls": "col",
+    "items": ["customer_id", "customer_name", "region", "product_id", "product_name", "category", "unit_price", "order_id", "quantity", "order_date"]
+  },
+  {
+    "title": "集計関数",
+    "cls": "fn",
+    "items": ["COUNT", "SUM", "AVG"]
+  },
+  {
+    "title": "演算子・記号",
+    "cls": "op",
+    "items": ["*", ",", "(", ")", ".", "=", ">=", "<=", ">", "<", ";"]
+  },
+  {
+    "title": "値",
+    "cls": "val",
+    "items": ["'東京'", "'大阪'", "1", "2", "3", "30000"]
+  }
+]

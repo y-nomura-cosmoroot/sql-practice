@@ -1,0 +1,12 @@
+/* CSS変数・リセットを最初に読み込み、その後で各コンポーネントのスタイルを重ねる */
+@import './variables.css';
+@import './base.css';
+@import './header.css';
+@import './panel.css';
+@import './buttons.css';
+@import './problem.css';
+@import './tabs.css';
+@import './builder.css';
+@import './schema.css';
+@import './design.css';
+@import './modal.css';
