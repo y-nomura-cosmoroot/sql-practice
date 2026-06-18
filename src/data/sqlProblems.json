@@ -124,5 +124,19 @@
     "q": "一度も注文されていない製品の製品名(product_name)を表示してください。",
     "hint": "WHERE NOT EXISTS ( SELECT 1 FROM orders WHERE orders.product_id = products.product_id )。",
     "answer": "SELECT product_name FROM products WHERE NOT EXISTS (SELECT 1 FROM orders WHERE orders.product_id = products.product_id);"
+  },
+  {
+    "cls": "lv-sub",
+    "levelLabel": "サブクエリ(平均と比較)",
+    "q": "全製品の平均単価より高い製品の、製品名(product_name)と単価(unit_price)を表示してください。",
+    "hint": "WHERE unit_price > ( SELECT AVG ( unit_price ) FROM products )。サブクエリが返す1つの平均値と比較します。",
+    "answer": "SELECT product_name, unit_price FROM products WHERE unit_price > (SELECT AVG(unit_price) FROM products);"
+  },
+  {
+    "cls": "lv-join",
+    "levelLabel": "JOIN+集計+トップN",
+    "q": "売上（単価×数量の合計）が高い製品トップ3を、製品名(product_name)と売上で表示してください。",
+    "hint": "orders と products を JOIN → SUM ( products.unit_price * orders.quantity ) を製品名で GROUP BY → 同じ式で ORDER BY ... DESC → LIMIT 3。",
+    "answer": "SELECT products.product_name, SUM(products.unit_price * orders.quantity) FROM orders JOIN products ON orders.product_id = products.product_id GROUP BY products.product_name ORDER BY SUM(products.unit_price * orders.quantity) DESC LIMIT 3;"
   }
 ]

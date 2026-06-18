@@ -26,6 +26,17 @@ export default function App() {
     <div className="wrap">
       <header className="app-header">
         <h1>SQL &amp; DB Design Practice</h1>
+        <div className="app-header-meta">
+          <span className="app-author">by yusuke nomura</span>
+          <a
+            className="app-repo-link"
+            href="https://github.com/y-nomura-cosmoroot/sql-practice"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            GitHub ↗
+          </a>
+        </div>
       </header>
 
       <div className="app-shell">

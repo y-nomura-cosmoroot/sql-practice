@@ -126,13 +126,12 @@ export default function SqlMode({ db, hidden, set }) {
       <div className="layout">
         <div className="col-left">
           <div className="panel">
-            <h2>テーブル構成</h2>
             <SchemaView db={db} onPick={insertToken} />
           </div>
         </div>
         <div className="col-right">
           <div className="panel">
-            <h2>部品パレット</h2>
+            <h2>SQL部品</h2>
             <Palette onPick={insertToken} />
           </div>
         </div>
@@ -142,7 +141,7 @@ export default function SqlMode({ db, hidden, set }) {
       <div className="composer-dock">
         <div className="composer-dock-inner">
           <div className="composer-panel">
-            <h2>SQLを組み立てる</h2>
+            <h2>組み立てたSQL</h2>
             <BuildArea tokens={tokens} cursor={cursor} onRemove={removeToken} />
             <div className="caret-controls">
               <span className="caret-controls-label">挿入位置</span>

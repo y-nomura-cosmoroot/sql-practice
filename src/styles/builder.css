@@ -15,7 +15,7 @@
   align-items: center;
   gap: 4px;
   padding: 6px 11px;
-  font-family: 'Courier New', monospace;
+  font-family: var(--code-font);
   font-size: 0.88rem;
   cursor: pointer;
   border: 1px solid transparent;
@@ -129,7 +129,7 @@
   background: var(--bg);
   color: var(--ink);
   cursor: pointer;
-  font-family: 'Courier New', monospace;
+  font-family: var(--code-font);
   font-size: 0.86rem;
   transition: all 0.12s;
 }
@@ -144,11 +144,23 @@
   font-weight: 700;
 }
 .tok.tb {
-  color: var(--ink);
+  color: var(--slate);
+  border-color: var(--slate);
+  background: #e9f0f6; /* 薄い青ティント（テーブル） */
   font-weight: 700;
 }
+.tok.tb:hover {
+  border-color: var(--slate);
+  background: #d8e6f1;
+}
 .tok.col {
-  color: var(--mauve);
+  color: #6b7280;
+  border-color: #d1d5db;
+  background: #f4f5f7; /* 薄いグレー（列） */
+}
+.tok.col:hover {
+  border-color: #9ca3af;
+  background: #e9ebef;
 }
 .tok.fn {
   color: var(--teal);

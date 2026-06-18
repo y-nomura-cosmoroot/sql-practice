@@ -8,6 +8,7 @@
   --mid: #999999;
   --card: #f2f2f2;
   --bg: #ffffff;
-  --head-font: Arial, 'Helvetica Neue', '游ゴシック', sans-serif;
-  --body-font: 'Hiragino Kaku Gothic ProN', '游ゴシック', 'Yu Gothic', Meiryo, sans-serif;
+  --head-font: 'Noto Sans JP', sans-serif;
+  --body-font: 'Noto Sans JP', sans-serif;
+  --code-font: 'Noto Sans JP', sans-serif;
 }

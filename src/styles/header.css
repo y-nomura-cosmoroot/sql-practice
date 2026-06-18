@@ -1,5 +1,10 @@
-/* 最上部のタイトルヘッダー（全幅） */
+/* 最上部のタイトルヘッダー（全幅）。左にタイトル、右端に author / リポジトリリンク */
 .app-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px 16px;
   margin-bottom: 16px;
   border-bottom: 1px solid #e5e7eb;
   padding-bottom: 4px;
@@ -12,4 +17,29 @@
   letter-spacing: 0.02em;
   font-size: 1.9rem;
   color: var(--ink);
+}
+
+/* タイトル横の author ＋ リポジトリリンク */
+.app-header-meta {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  font-family: var(--head-font);
+  font-size: 0.8rem;
+}
+
+.app-author {
+  color: var(--mid);
+  letter-spacing: 0.02em;
+}
+
+.app-repo-link {
+  color: var(--slate);
+  font-weight: 700;
+  text-decoration: none;
+  letter-spacing: 0.02em;
+}
+
+.app-repo-link:hover {
+  text-decoration: underline;
 }
