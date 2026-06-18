@@ -113,10 +113,10 @@ export default function DesignMode({ hidden, set }) {
       <div className="layout">
         <div className="col-left">
           <div className="panel">
-            <h2>テーブルを設計する</h2>
+            <h2>テーブル設計</h2>
             <div>
               {design.length === 0 ? (
-                <div className="placeholder-hint">下の「テーブルを追加」から始めましょう。</div>
+                <div className="placeholder-hint">「テーブルを追加」から正しい設計をしてください。</div>
               ) : (
                 design.map((t, ti) => (
                   <TableCard
