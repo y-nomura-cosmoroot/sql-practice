@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SQL & DB Design Practice</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/sql-wasm.min.js"></script>
+<style>
+  :root {
+    --slate: #3D698F; --teal: #80A7A5; --sage: #ABBE92; --mauve: #775864;
+    --ink: #44546A; --mid: #999999; --card: #F2F2F2; --bg: #FFFFFF;
+    --head-font: Arial, 'Helvetica Neue', '游ゴシック', sans-serif;
+    --body-font: 'Hiragino Kaku Gothic ProN', '游ゴシック', 'Yu Gothic', Meiryo, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--body-font); font-weight: 300; background: var(--bg); color: var(--ink); line-height: 1.65; padding: 24px 20px; }
+  .wrap { max-width: 1280px; margin: 0 auto; }
+
+  header { margin-bottom: 22px; border-bottom: 1px solid #e5e7eb; padding-bottom: 16px; }
+  h1 { font-family: var(--head-font); font-weight: 700; text-transform: uppercase; letter-spacing: .02em; font-size: 1.9rem; color: var(--ink); }
+  .subtitle { color: var(--mid); font-size: 0.92rem; margin-top: 6px; font-weight: 300; }
+
+  /* モード切替（最上位タブ） */
+  .mode-tabs { display: flex; gap: 0; margin-top: 16px; }
+  .mode-tab {
+    padding: 11px 26px; border: none; background: var(--card); color: var(--mid); cursor: pointer;
+    font-family: var(--head-font); font-weight: 700; text-transform: uppercase; letter-spacing: .04em;
+    font-size: 0.92rem; min-height: 44px; transition: all .12s; border-bottom: 3px solid transparent;
+  }
+  .mode-tab:hover { color: var(--ink); }
+  .mode-tab.active { background: var(--slate); color: #fff; }
+
+  .layout { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start; }
+  @media (max-width: 880px) { .layout { grid-template-columns: 1fr; } }
+  .col-right { position: sticky; top: 16px; }
+  @media (max-width: 880px) { .col-right { position: static; } }
+
+  .panel { background: var(--bg); border: 1px solid #e5e7eb; padding: 22px; margin-bottom: 22px; }
+  h2 { font-family: var(--head-font); font-weight: 700; text-transform: uppercase; letter-spacing: .03em; font-size: 1rem; color: var(--ink); margin-bottom: 14px; }
+
+  .prob-nav { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
+  .prob-btn { position: relative; width: 36px; height: 36px; border: 1px solid #d1d5db; background: var(--bg); color: var(--mid); cursor: pointer; font-family: var(--head-font); font-weight: 700; font-size: 0.85rem; transition: all .12s; }
+  .prob-btn:hover { border-color: var(--slate); color: var(--slate); }
+  .prob-btn.active { background: var(--slate); color: #fff; border-color: var(--slate); }
+  .prob-btn.solved { border-color: var(--sage); color: var(--ink); }
+  .prob-btn.solved.active { background: var(--slate); color: #fff; }
+  .prob-btn.solved::after { content: "✓"; position: absolute; top: -7px; right: -7px; background: var(--sage); color: #fff; font-size: 0.6rem; width: 15px; height: 15px; display: flex; align-items: center; justify-content: center; }
+
+  .level-badge { display: inline-block; font-family: var(--head-font); font-weight: 700; text-transform: uppercase; letter-spacing: .03em; font-size: 0.68rem; padding: 3px 12px; margin-bottom: 10px; color: #fff; }
+  .lv-basic { background: var(--sage); } .lv-sort { background: var(--teal); } .lv-agg { background: var(--slate); }
+  .lv-group { background: var(--mauve); } .lv-join { background: var(--ink); } .lv-sub { background: #320C2D; }
+  .lv-d1 { background: var(--sage); } .lv-d2 { background: var(--teal); } .lv-d3 { background: var(--slate); }
+  .lv-d4 { background: var(--mauve); } .lv-d5 { background: var(--ink); }
+
+  .question { font-size: 1.1rem; color: var(--ink); margin-bottom: 8px; font-weight: 400; }
+  .progress { font-family: var(--head-font); font-weight: 700; font-size: 0.82rem; color: var(--mid); letter-spacing: .02em; }
+
+  /* SQL組み立て */
+  .build-area { min-height: 66px; background: var(--card); border: 1px solid #e5e7eb; padding: 10px; display: flex; flex-wrap: wrap; gap: 6px; align-content: flex-start; }
+  .placeholder-hint { color: var(--mid); font-size: 0.9rem; padding: 4px; }
+  .chip { display: inline-flex; align-items: center; gap: 4px; padding: 6px 11px; font-family: 'Courier New', monospace; font-size: 0.88rem; cursor: pointer; border: 1px solid transparent; user-select: none; transition: all .12s; }
+  .chip.placed { background: var(--slate); color: #fff; }
+  .chip.placed:hover { background: var(--mauve); }
+  .chip.placed:hover::after { content: "✕"; font-size: 0.7rem; }
+  .built-sql { margin-top: 10px; background: var(--card); border-left: 4px solid var(--slate); padding: 10px 14px; font-family: 'Courier New', monospace; font-size: 0.88rem; color: var(--ink); min-height: 22px; white-space: pre-wrap; word-break: break-word; }
+  .built-sql .lbl { color: var(--mid); }
+
+  .pal-group { margin-bottom: 12px; }
+  .pal-title { font-family: var(--head-font); font-weight: 700; font-size: 0.7rem; color: var(--mid); margin-bottom: 6px; text-transform: uppercase; letter-spacing: .06em; }
+  .pal-items { display: flex; flex-wrap: wrap; gap: 6px; }
+  .tok { padding: 7px 12px; border: 1px solid #d1d5db; background: var(--bg); color: var(--ink); cursor: pointer; font-family: 'Courier New', monospace; font-size: 0.86rem; transition: all .12s; }
+  .tok:hover { border-color: var(--slate); background: var(--card); }
+  .tok.kw { color: var(--slate); font-weight: 700; } .tok.tb { color: var(--ink); font-weight: 700; }
+  .tok.col { color: var(--mauve); } .tok.fn { color: var(--teal); font-weight: 700; }
+  .tok.op { color: var(--mid); } .tok.val { color: #320C2D; }
+
+  .btn-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+  button.action { padding: 10px 18px; border: none; cursor: pointer; font-family: var(--head-font); font-weight: 700; text-transform: uppercase; letter-spacing: .03em; font-size: 0.82rem; transition: all .12s; min-height: 44px; }
+  .btn-run { background: var(--slate); color: #fff; } .btn-run:hover { background: var(--teal); }
+  .btn-check { background: var(--sage); color: #fff; } .btn-check:hover { background: var(--teal); }
+  .btn-ghost { background: var(--card); color: var(--ink); } .btn-ghost:hover { background: #e5e7eb; }
+  .btn-del { background: var(--card); color: var(--mauve); } .btn-del:hover { background: #e5e7eb; }
+
+  .msg { padding: 11px 15px; margin-top: 14px; font-size: 0.92rem; border-left: 4px solid; }
+  .msg-ok { background: var(--card); border-color: var(--sage); color: var(--ink); }
+  .msg-ng { background: var(--card); border-color: var(--mauve); color: var(--ink); }
+  .msg-err { background: var(--card); border-color: var(--mauve); color: var(--ink); }
+  .msg-info { background: var(--card); border-color: var(--slate); color: var(--ink); }
+
+  .tabs { display: flex; gap: 0; margin-bottom: 16px; border-bottom: 2px solid #e5e7eb; }
+  .tab { padding: 10px 18px; border: none; background: transparent; color: var(--mid); cursor: pointer; font-family: var(--head-font); font-weight: 700; text-transform: uppercase; letter-spacing: .03em; font-size: 0.8rem; border-bottom: 3px solid transparent; margin-bottom: -2px; transition: all .12s; min-height: 44px; }
+  .tab:hover { color: var(--ink); }
+  .tab.active { color: var(--slate); border-bottom-color: var(--slate); }
+  .tab.flash { animation: tabFlash .9s ease; }
+  @keyframes tabFlash { 0%,100% { background: transparent; } 30% { background: var(--card); } }
+
+  table.data { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.86rem; }
+  table.data th, table.data td { padding: 8px 11px; text-align: left; border: 1px solid #e5e7eb; }
+  table.data th { background: var(--slate); color: #fff; font-family: var(--head-font); font-weight: 700; font-size: 0.8rem; }
+  table.data td { background: var(--bg); color: var(--ink); }
+  table.data tr:nth-child(even) td { background: var(--card); }
+  .table-scroll { overflow-x: auto; }
+  .res-label { font-family: var(--head-font); font-weight: 700; font-size: 0.78rem; color: var(--mid); margin-top: 14px; margin-bottom: 2px; text-transform: uppercase; letter-spacing: .03em; }
+
+  .schema-table { margin-bottom: 18px; }
+  .schema-name { font-family: var(--head-font); font-weight: 700; color: var(--slate); font-size: 0.95rem; margin-bottom: 5px; text-transform: uppercase; letter-spacing: .02em; }
+  .schema-cols { font-size: 0.84rem; color: var(--ink); }
+  .schema-cols .col { padding: 1px 0; }
+  .schema-cols .pk { color: var(--slate); font-weight: 700; } .schema-cols .fk { color: var(--teal); font-weight: 700; }
+  details summary { cursor: pointer; color: var(--slate); font-family: var(--head-font); font-weight: 700; font-size: 0.78rem; margin-top: 8px; user-select: none; text-transform: uppercase; letter-spacing: .02em; }
+  .hint-text { background: var(--card); border-left: 4px solid var(--slate); padding: 10px 14px; font-size: 0.9rem; color: var(--ink); margin-top: 12px; }
+  .answer-code { background: var(--card); border-left: 4px solid var(--ink); padding: 11px 14px; font-family: 'Courier New', monospace; font-size: 0.86rem; color: var(--ink); margin-top: 12px; white-space: pre-wrap; word-break: break-word; }
+  .loading { text-align: center; padding: 50px; color: var(--mid); font-family: var(--head-font); font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
+
+  /* ===== 設計ビルダー ===== */
+  .d-table { border: 1px solid #d1d5db; margin-bottom: 14px; }
+  .d-table-head { display: flex; justify-content: space-between; align-items: center; background: var(--slate); color: #fff; padding: 8px 12px; }
+  .d-table-name { font-family: var(--head-font); font-weight: 700; text-transform: uppercase; letter-spacing: .02em; font-size: 0.95rem; }
+  .d-mini { padding: 4px 10px; border: none; background: rgba(255,255,255,.2); color: #fff; cursor: pointer; font-family: var(--head-font); font-weight: 700; font-size: 0.7rem; text-transform: uppercase; }
+  .d-mini:hover { background: rgba(255,255,255,.35); }
+  .d-cols { padding: 8px 12px; }
+  .d-col-head, .d-col-row { display: grid; grid-template-columns: 1.4fr 1fr auto auto auto; gap: 8px; align-items: center; }
+  .d-col-head { font-family: var(--head-font); font-weight: 700; font-size: 0.66rem; color: var(--mid); text-transform: uppercase; letter-spacing: .04em; padding-bottom: 4px; border-bottom: 1px solid #e5e7eb; margin-bottom: 6px; }
+  .d-col-row { padding: 4px 0; }
+  .d-col-name { font-family: 'Courier New', monospace; font-size: 0.88rem; color: var(--mauve); font-weight: 700; }
+  .d-sel { padding: 5px 6px; border: 1px solid #d1d5db; background: var(--bg); color: var(--ink); font-family: 'Courier New', monospace; font-size: 0.8rem; }
+  .d-chk { display: flex; align-items: center; justify-content: center; gap: 3px; font-family: var(--head-font); font-weight: 700; font-size: 0.68rem; color: var(--ink); }
+  .d-chk input { width: 16px; height: 16px; accent-color: var(--slate); }
+  .d-col-del { border: none; background: transparent; color: var(--mauve); cursor: pointer; font-size: 0.9rem; font-weight: 700; }
+  .d-addcol { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-top: 10px; padding-top: 8px; border-top: 1px dashed #e5e7eb; }
+  .d-addcol .lbl { font-family: var(--head-font); font-weight: 700; font-size: 0.68rem; color: var(--mid); text-transform: uppercase; margin-right: 4px; }
+  .d-pill { padding: 4px 10px; border: 1px solid #d1d5db; background: var(--bg); color: var(--mauve); cursor: pointer; font-family: 'Courier New', monospace; font-size: 0.8rem; }
+  .d-pill:hover { border-color: var(--slate); background: var(--card); }
+  .d-addtable { margin-top: 6px; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+  .d-tablepill { padding: 7px 14px; border: 1px solid var(--slate); background: var(--bg); color: var(--slate); cursor: pointer; font-family: var(--head-font); font-weight: 700; text-transform: uppercase; font-size: 0.78rem; letter-spacing: .02em; }
+  .d-tablepill:hover { background: var(--slate); color: #fff; }
+
+  .d-preview-tbl { margin-bottom: 14px; }
+  .d-preview-name { font-family: var(--head-font); font-weight: 700; color: var(--slate); text-transform: uppercase; font-size: 0.92rem; letter-spacing: .02em; }
+  .d-preview-col { font-family: 'Courier New', monospace; font-size: 0.84rem; color: var(--ink); padding-left: 14px; }
+  .d-preview-col .tag { color: var(--teal); font-weight: 700; }
+  .d-preview-col .pktag { color: var(--slate); font-weight: 700; }
+  .d-check { display: flex; gap: 8px; align-items: flex-start; padding: 6px 0; font-size: 0.88rem; border-bottom: 1px solid #f0f0f0; }
+  .d-check .ic { font-weight: 700; flex-shrink: 0; }
+  .d-check.ok .ic { color: var(--sage); } .d-check.ng .ic { color: var(--mauve); }
+
+  /* ポップアップ */
+  .overlay { position: fixed; inset: 0; background: rgba(68,84,106,.55); display: none; align-items: center; justify-content: center; z-index: 100; padding: 16px; }
+  .overlay.show { display: flex; animation: fadeIn .18s ease; }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  .modal { background: var(--bg); border-top: 6px solid var(--sage); max-width: 440px; width: 100%; text-align: center; padding: 32px 28px; box-shadow: 0 12px 48px rgba(68,84,106,.25); animation: pop .26s cubic-bezier(.18,.89,.32,1.28); }
+  .modal.ng { border-top-color: var(--mauve); }
+  @keyframes pop { from { transform: scale(.85); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+  .modal .emoji { font-size: 2.8rem; line-height: 1; margin-bottom: 10px; }
+  .modal h3 { font-family: var(--head-font); font-weight: 700; text-transform: uppercase; letter-spacing: .03em; color: var(--slate); font-size: 1.5rem; margin-bottom: 8px; }
+  .modal.ng h3 { color: var(--mauve); }
+  .modal p { color: var(--ink); font-size: 0.95rem; margin-bottom: 18px; font-weight: 300; }
+  .modal-progress { font-family: var(--head-font); font-weight: 700; color: var(--mid); font-size: 0.82rem; margin-bottom: 20px; letter-spacing: .02em; }
+  .modal-btns { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+  .modal-btns button { padding: 11px 22px; border: none; cursor: pointer; font-family: var(--head-font); font-weight: 700; text-transform: uppercase; letter-spacing: .03em; font-size: 0.82rem; min-height: 44px; }
+  .modal.info { border-top-color: var(--slate); }
+  .modal.info h3 { color: var(--slate); }
+  .modal.info .info-hint { background: var(--card); border-left: 4px solid var(--slate); padding: 12px 16px; font-size: 0.95rem; color: var(--ink); line-height: 1.7; }
+  .modal.info .info-code { background: var(--card); border-left: 4px solid var(--ink); padding: 12px 16px; font-family: 'Courier New', monospace; font-size: 0.88rem; color: var(--ink); white-space: pre-wrap; word-break: break-word; line-height: 1.7; }
+  .modal-next { background: var(--slate); color: #fff; } .modal-next:hover { background: var(--teal); }
+  .modal-close { background: var(--card); color: var(--ink); } .modal-close:hover { background: #e5e7eb; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>SQL &amp; DB Design Practice</h1>
+    <div class="subtitle">部品を選んでSQLを組み立てたり、要件からテーブル設計を組み立てて判定できます。文字入力は不要です。</div>
+    <div class="mode-tabs">
+      <button class="mode-tab active" id="modeSql" data-mode="sql">SQL</button>
+      <button class="mode-tab" id="modeDesign" data-mode="design">設計</button>
+    </div>
+  </header>
+
+  <div id="loading" class="loading">Loading SQL Engine...</div>
+
+  <!-- ===== SQLモード ===== -->
+  <div id="sqlApp" class="layout" style="display:none;">
+    <div class="col-left">
+      <div class="panel">
+        <h2>問題</h2>
+        <div class="prob-nav" id="probNav"></div>
+        <div id="probMeta"></div>
+        <div class="question" id="questionText"></div>
+        <div class="progress" id="progressText"></div>
+      </div>
+      <div class="panel">
+        <h2>SQLを組み立てる</h2>
+        <div class="build-area" id="buildArea"></div>
+        <div class="built-sql" id="builtSql"></div>
+        <div class="btn-row">
+          <button class="action btn-run" id="btnRun">▶ 実行</button>
+          <button class="action btn-check" id="btnCheck">✓ 答え合わせ</button>
+          <button class="action btn-del" id="btnUndo">⌫ 戻す</button>
+          <button class="action btn-del" id="btnClear">クリア</button>
+          <button class="action btn-ghost" id="btnHint">ヒント</button>
+          <button class="action btn-ghost" id="btnAnswer">解答例</button>
+        </div>
+        <h2 style="margin-top:20px;">部品パレット</h2>
+        <div id="palette"></div>
+        <div id="hintArea"></div>
+        <div id="msgArea"></div>
+      </div>
+    </div>
+    <div class="col-right">
+      <div class="panel">
+        <div class="tabs">
+          <button class="tab active" id="tabSchema" data-tab="schema">テーブル構成</button>
+          <button class="tab" id="tabResult" data-tab="result">あなたの結果</button>
+        </div>
+        <div class="tab-body" id="schemaArea"></div>
+        <div class="tab-body" id="resultArea" style="display:none;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 設計モード ===== -->
+  <div id="designApp" class="layout" style="display:none;">
+    <div class="col-left">
+      <div class="panel">
+        <h2>設計課題</h2>
+        <div class="prob-nav" id="dProbNav"></div>
+        <div id="dProbMeta"></div>
+        <div class="question" id="dQuestionText"></div>
+        <div class="progress" id="dProgressText"></div>
+        <div class="btn-row">
+          <button class="action btn-check" id="dBtnCheck">✓ 設計を判定</button>
+          <button class="action btn-del" id="dBtnClear">クリア</button>
+          <button class="action btn-ghost" id="dBtnHint">ヒント</button>
+          <button class="action btn-ghost" id="dBtnAnswer">模範解答</button>
+        </div>
+        <div id="dHintArea"></div>
+        <div id="dMsgArea"></div>
+      </div>
+      <div class="panel">
+        <h2>テーブルを設計する</h2>
+        <div id="dBuilder"></div>
+        <div style="margin-top:10px;">
+          <div class="pal-title">テーブルを追加</div>
+          <div class="d-addtable" id="dAddTable"></div>
+        </div>
+      </div>
+    </div>
+    <div class="col-right">
+      <div class="panel">
+        <div class="tabs">
+          <button class="tab active" id="dTabPreview" data-dtab="preview">設計プレビュー</button>
+          <button class="tab" id="dTabResult" data-dtab="result">判定結果</button>
+        </div>
+        <div class="tab-body" id="dPreviewArea"></div>
+        <div class="tab-body" id="dResultArea" style="display:none;"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 正誤ポップアップ（共通） -->
+<div class="overlay" id="overlay">
+  <div class="modal" id="modalBox">
+    <div class="emoji">🎉</div>
+    <h3>正解！</h3>
+    <p>結果が一致しました。</p>
+    <div class="modal-progress" id="modalProgress"></div>
+    <div class="modal-btns">
+      <button class="modal-next" id="modalNext">次へ →</button>
+      <button class="modal-close" id="modalClose">閉じる</button>
+    </div>
+  </div>
+</div>
+
+<!-- 情報ポップアップ（ヒント・解答例） -->
+<div class="overlay" id="infoOverlay">
+  <div class="modal info" id="infoBox" style="text-align:left;max-width:520px;">
+    <h3 id="infoTitle" style="text-align:center;">ヒント</h3>
+    <div id="infoBody"></div>
+    <div class="modal-btns" style="margin-top:20px;">
+      <button class="modal-close" id="infoClose">閉じる</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let db = null, current = 0, tokens = [], popupMode = 'sql';
+const solved = {};
+
+/* ===================== サンプルDB & SQL問題 ===================== */
+const SETUP_SQL = `
+CREATE TABLE customers (customer_id INTEGER PRIMARY KEY, customer_name TEXT, region TEXT);
+INSERT INTO customers VALUES (1,'田中商事','東京'),(2,'佐藤物産','大阪'),(3,'鈴木工業','東京'),(4,'高橋商会','福岡'),(5,'伊藤産業','大阪');
+CREATE TABLE products (product_id INTEGER PRIMARY KEY, product_name TEXT, category TEXT, unit_price INTEGER);
+INSERT INTO products VALUES (101,'ノートPC','電子機器',120000),(102,'マウス','電子機器',2500),(103,'デスク','家具',35000),(104,'チェア','家具',18000),(105,'モニター','電子機器',28000),(106,'ペン','文具',150);
+CREATE TABLE orders (order_id INTEGER PRIMARY KEY, customer_id INTEGER, product_id INTEGER, quantity INTEGER, order_date TEXT);
+INSERT INTO orders VALUES (1001,1,101,2,'2024-01-15'),(1002,1,102,5,'2024-01-15'),(1003,2,103,1,'2024-02-03'),(1004,3,105,3,'2024-02-10'),(1005,2,104,4,'2024-03-01'),(1006,1,105,2,'2024-03-12'),(1007,4,102,10,'2024-03-20'),(1008,3,101,1,'2024-04-05'),(1009,5,106,50,'2024-04-18'),(1010,2,101,1,'2024-05-02');
+`;
+const SCHEMA = [
+  { name:'customers', desc:'顧客', cols:[{c:'customer_id',t:'INTEGER',tag:'pk',note:'主キー'},{c:'customer_name',t:'TEXT'},{c:'region',t:'TEXT',note:'地域'}]},
+  { name:'products', desc:'製品', cols:[{c:'product_id',t:'INTEGER',tag:'pk',note:'主キー'},{c:'product_name',t:'TEXT'},{c:'category',t:'TEXT',note:'カテゴリ'},{c:'unit_price',t:'INTEGER',note:'単価'}]},
+  { name:'orders', desc:'注文', cols:[{c:'order_id',t:'INTEGER',tag:'pk',note:'主キー'},{c:'customer_id',t:'INTEGER',tag:'fk',note:'→customers'},{c:'product_id',t:'INTEGER',tag:'fk',note:'→products'},{c:'quantity',t:'INTEGER',note:'数量'},{c:'order_date',t:'TEXT',note:'注文日'}]},
+];
+const PALETTE = [
+  { title:'キーワード', cls:'kw', items:['SELECT','FROM','WHERE','GROUP BY','HAVING','ORDER BY','DESC','LIMIT','JOIN','ON','IN','EXISTS','NOT EXISTS'] },
+  { title:'テーブル', cls:'tb', items:['customers','products','orders'] },
+  { title:'列', cls:'col', items:['customer_id','customer_name','region','product_id','product_name','category','unit_price','order_id','quantity','order_date'] },
+  { title:'集計関数', cls:'fn', items:['COUNT','SUM','AVG'] },
+  { title:'演算子・記号', cls:'op', items:['*',',','(',')','.','=','>=','<=','>','<',';'] },
+  { title:'値', cls:'val', items:["'東京'","'大阪'",'1','2','3','30000'] },
+];
+const PROBLEMS = [
+  { cls:'lv-basic', levelLabel:'基本', q:'すべての製品の製品名(product_name)と単価(unit_price)を表示してください。', hint:'SELECT で列を、FROM でテーブルを指定します。', answer:'SELECT product_name, unit_price FROM products;' },
+  { cls:'lv-basic', levelLabel:'基本(WHERE)', q:'地域(region)が「東京」の顧客の顧客名(customer_name)を表示してください。', hint:'WHERE 句で条件を指定します。', answer:"SELECT customer_name FROM customers WHERE region = '東京';" },
+  { cls:'lv-basic', levelLabel:'基本(WHERE)', q:'単価(unit_price)が30000円以上の製品の製品名と単価を表示してください。', hint:'>= で「以上」を表します。', answer:'SELECT product_name, unit_price FROM products WHERE unit_price >= 30000;' },
+  { cls:'lv-sort', levelLabel:'並び替え', q:'すべての製品を単価(unit_price)の高い順に、製品名と単価を表示してください。', hint:'ORDER BY 列名 DESC で降順。', answer:'SELECT product_name, unit_price FROM products ORDER BY unit_price DESC;' },
+  { cls:'lv-sort', levelLabel:'並び替え+LIMIT', q:'単価が最も高い製品トップ3の製品名と単価を表示してください。', hint:'ORDER BY ... DESC の後に LIMIT 3。', answer:'SELECT product_name, unit_price FROM products ORDER BY unit_price DESC LIMIT 3;' },
+  { cls:'lv-agg', levelLabel:'集計(COUNT)', q:'注文(orders)の件数を数えてください。(列名は任意)', hint:'COUNT ( * ) で行数を数えます。', answer:'SELECT COUNT(*) FROM orders;' },
+  { cls:'lv-agg', levelLabel:'集計(SUM)', q:'注文(orders)の数量(quantity)の合計を求めてください。(列名は任意)', hint:'SUM ( quantity )。', answer:'SELECT SUM(quantity) FROM orders;' },
+  { cls:'lv-agg', levelLabel:'集計(AVG)', q:'製品(products)の単価(unit_price)の平均を求めてください。(列名は任意)', hint:'AVG ( unit_price )。', answer:'SELECT AVG(unit_price) FROM products;' },
+  { cls:'lv-group', levelLabel:'グループ集計', q:'カテゴリ(category)ごとの製品数を、カテゴリ名と件数の2列で表示してください。', hint:'GROUP BY category と COUNT ( * )。', answer:'SELECT category, COUNT(*) FROM products GROUP BY category;' },
+  { cls:'lv-group', levelLabel:'グループ集計', q:'カテゴリ(category)ごとの単価(unit_price)の平均を、カテゴリ名と平均単価で表示してください。', hint:'GROUP BY と AVG を組み合わせます。', answer:'SELECT category, AVG(unit_price) FROM products GROUP BY category;' },
+  { cls:'lv-group', levelLabel:'GROUP BY+HAVING', q:'製品が2件以上あるカテゴリ(category)だけを、カテゴリ名と件数で表示してください。', hint:'グループへの条件は HAVING。HAVING COUNT ( * ) >= 2。', answer:'SELECT category, COUNT(*) FROM products GROUP BY category HAVING COUNT(*) >= 2;' },
+  { cls:'lv-join', levelLabel:'結合(JOIN)', q:'各注文について、顧客名(customer_name)と数量(quantity)を表示してください。', hint:'orders と customers を customer_id で JOIN。列は テーブル.列 で指定。', answer:'SELECT customers.customer_name, orders.quantity FROM orders JOIN customers ON orders.customer_id = customers.customer_id;' },
+  { cls:'lv-join', levelLabel:'結合(JOIN)', q:'各注文について、製品名(product_name)・数量(quantity)・注文日(order_date)を表示してください。', hint:'orders と products を product_id で JOIN。', answer:'SELECT products.product_name, orders.quantity, orders.order_date FROM orders JOIN products ON orders.product_id = products.product_id;' },
+  { cls:'lv-join', levelLabel:'複数JOIN', q:'地域(region)が「東京」の顧客が注文した製品名(product_name)と数量(quantity)を表示してください。', hint:'orders を customers と products の両方に JOIN し、WHERE で東京に絞る。', answer:"SELECT products.product_name, orders.quantity FROM orders JOIN customers ON orders.customer_id = customers.customer_id JOIN products ON orders.product_id = products.product_id WHERE customers.region = '東京';" },
+  { cls:'lv-join', levelLabel:'JOIN+集計', q:'顧客ごとの注文金額合計（単価×数量の合計）を、顧客名と合計金額で表示してください。', hint:'3テーブルをJOINし、SUM ( products.unit_price * orders.quantity ) を顧客名でGROUP BY。', answer:'SELECT customers.customer_name, SUM(products.unit_price * orders.quantity) FROM orders JOIN customers ON orders.customer_id = customers.customer_id JOIN products ON orders.product_id = products.product_id GROUP BY customers.customer_name;' },
+  { cls:'lv-sub', levelLabel:'サブクエリ(IN)', q:'一度でも注文された製品の製品名(product_name)を表示してください。', hint:'WHERE product_id IN ( SELECT product_id FROM orders )。', answer:'SELECT product_name FROM products WHERE product_id IN (SELECT product_id FROM orders);' },
+  { cls:'lv-sub', levelLabel:'サブクエリ(EXISTS)', q:'注文をしたことがある顧客の顧客名(customer_name)を、EXISTSを使って表示してください。', hint:'WHERE EXISTS ( SELECT 1 FROM orders WHERE orders.customer_id = customers.customer_id )。', answer:'SELECT customer_name FROM customers WHERE EXISTS (SELECT 1 FROM orders WHERE orders.customer_id = customers.customer_id);' },
+  { cls:'lv-sub', levelLabel:'サブクエリ(NOT EXISTS)', q:'一度も注文されていない製品の製品名(product_name)を表示してください。', hint:'WHERE NOT EXISTS ( SELECT 1 FROM orders WHERE orders.product_id = products.product_id )。', answer:'SELECT product_name FROM products WHERE NOT EXISTS (SELECT 1 FROM orders WHERE orders.product_id = products.product_id);' },
+];
+
+/* ===================== 設計課題 ===================== */
+const TYPE_OPTIONS = ['INTEGER','TEXT','DATE','DATETIME','REAL','BOOLEAN'];
+let design = [], dcur = 0;
+const dsolved = {};
+
+// answer 形式: { tableName: [ {name,type,pk?,ref?} ] }
+const DPROBLEMS = [
+  {
+    cls:'lv-d1', levelLabel:'基本(主キーと型)',
+    q:'会員を管理するシステム。各会員は「会員ID・氏名・メールアドレス・生年月日」を持つ。これを1つのテーブルとして設計し、主キーと各列の型を指定してください。',
+    hint:'会員IDが主キー(PK)。IDはINTEGER、氏名とメールはTEXT、生年月日はDATEが適切です。',
+    tablePool:['members','orders'],
+    columnPool:{ members:['member_id','name','email','birth_date','address','order_id'] },
+    answer:{ members:[
+      {name:'member_id',type:'INTEGER',pk:true},
+      {name:'name',type:'TEXT'},
+      {name:'email',type:'TEXT'},
+      {name:'birth_date',type:'DATE'},
+    ]},
+    model:'members(member_id INTEGER PK, name TEXT, email TEXT, birth_date DATE)'
+  },
+  {
+    cls:'lv-d2', levelLabel:'1対多(外部キー)',
+    q:'顧客は複数の注文を行うが、1件の注文は必ず1人の顧客のもの（1対多）。顧客は「氏名・地域」、注文は「注文日・金額」を持つ。2テーブルに分け、外部キー(FK)を正しい側に置いてください。',
+    hint:'「多」の側（orders）に顧客への外部キー customer_id を置きます。customers(customer_id PK, name, region) / orders(order_id PK, customer_id FK→customers, order_date, amount)。',
+    tablePool:['customers','orders','products'],
+    columnPool:{
+      customers:['customer_id','name','region','order_id','amount'],
+      orders:['order_id','customer_id','order_date','amount','name','region'],
+      products:['product_id','product_name']
+    },
+    answer:{
+      customers:[ {name:'customer_id',type:'INTEGER',pk:true},{name:'name',type:'TEXT'},{name:'region',type:'TEXT'} ],
+      orders:[ {name:'order_id',type:'INTEGER',pk:true},{name:'customer_id',type:'INTEGER',ref:'customers'},{name:'order_date',type:'DATE'},{name:'amount',type:'INTEGER'} ]
+    },
+    model:'customers(customer_id PK, name, region)\norders(order_id PK, customer_id FK→customers, order_date, amount)'
+  },
+  {
+    cls:'lv-d3', levelLabel:'多対多(中間テーブル)',
+    q:'学生は複数の科目を履修でき、1科目は複数の学生に履修される（多対多）。学生は「氏名」、科目は「科目名」を持ち、履修ごとに「成績」を記録する。多対多を正しく解消して設計してください。',
+    hint:'多対多は中間テーブルで解消します。students(student_id PK, name) / courses(course_id PK, course_name) / enrollments(student_id PK+FK→students, course_id PK+FK→courses, grade)。中間テーブルは両IDを主キー(複合)かつ外部キーに。',
+    tablePool:['students','courses','enrollments','teachers'],
+    columnPool:{
+      students:['student_id','name','course_id'],
+      courses:['course_id','course_name','student_id'],
+      enrollments:['student_id','course_id','grade'],
+      teachers:['teacher_id','name']
+    },
+    answer:{
+      students:[ {name:'student_id',type:'INTEGER',pk:true},{name:'name',type:'TEXT'} ],
+      courses:[ {name:'course_id',type:'INTEGER',pk:true},{name:'course_name',type:'TEXT'} ],
+      enrollments:[ {name:'student_id',type:'INTEGER',pk:true,ref:'students'},{name:'course_id',type:'INTEGER',pk:true,ref:'courses'},{name:'grade',type:'TEXT'} ]
+    },
+    model:'students(student_id PK, name)\ncourses(course_id PK, course_name)\nenrollments(student_id PK FK→students, course_id PK FK→courses, grade)'
+  },
+  {
+    cls:'lv-d4', levelLabel:'第3正規形(推移的従属)',
+    q:'いま社員テーブルに「社員ID・氏名・部署ID・部署名」が入っており、部署名が部署IDに従属して冗長（同じ部署名が何度も重複）。推移的従属を除去するよう、2テーブルに正規化してください。',
+    hint:'部署を独立させます。departments(department_id PK, department_name) / employees(employee_id PK, name, department_id FK→departments)。部署名は employees から取り除きます。',
+    tablePool:['employees','departments'],
+    columnPool:{
+      employees:['employee_id','name','department_id','department_name'],
+      departments:['department_id','department_name']
+    },
+    answer:{
+      employees:[ {name:'employee_id',type:'INTEGER',pk:true},{name:'name',type:'TEXT'},{name:'department_id',type:'INTEGER',ref:'departments'} ],
+      departments:[ {name:'department_id',type:'INTEGER',pk:true},{name:'department_name',type:'TEXT'} ]
+    },
+    model:'employees(employee_id PK, name, department_id FK→departments)\ndepartments(department_id PK, department_name)'
+  },
+  {
+    cls:'lv-d5', levelLabel:'第1正規形(繰り返しの排除)',
+    q:'1件の注文に複数の商品が含まれる。1つの注文行に商品をいくつも詰め込む（繰り返し）のをやめ、明細を別テーブルに分けて設計してください。注文は「注文日」、明細は「商品名・数量」を持つ。',
+    hint:'明細を行に展開します。orders(order_id PK, order_date) / order_items(order_item_id PK, order_id FK→orders, product_name, quantity)。',
+    tablePool:['orders','order_items','products'],
+    columnPool:{
+      orders:['order_id','order_date','product_name','quantity'],
+      order_items:['order_item_id','order_id','product_name','quantity'],
+      products:['product_id','product_name']
+    },
+    answer:{
+      orders:[ {name:'order_id',type:'INTEGER',pk:true},{name:'order_date',type:'DATE'} ],
+      order_items:[ {name:'order_item_id',type:'INTEGER',pk:true},{name:'order_id',type:'INTEGER',ref:'orders'},{name:'product_name',type:'TEXT'},{name:'quantity',type:'INTEGER'} ]
+    },
+    model:'orders(order_id PK, order_date)\norder_items(order_item_id PK, order_id FK→orders, product_name, quantity)'
+  },
+];
+
+/* ===================== 初期化 ===================== */
+initSqlJs({ locateFile: f => `https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/${f}` })
+  .then(SQL => {
+    db = new SQL.Database(); db.run(SETUP_SQL);
+    document.getElementById('loading').style.display='none';
+    document.getElementById('sqlApp').style.display='grid';
+    renderSchema(); renderPalette(); renderNav(); loadProblem(0);
+    renderDNav(); loadDProblem(0);
+    bindEvents();
+  })
+  .catch(e => { document.getElementById('loading').textContent='読み込みに失敗しました: '+e.message; });
+
+/* ===================== モード切替 ===================== */
+function switchMode(mode) {
+  const isSql = mode === 'sql';
+  document.getElementById('modeSql').classList.toggle('active', isSql);
+  document.getElementById('modeDesign').classList.toggle('active', !isSql);
+  document.getElementById('sqlApp').style.display = isSql ? 'grid' : 'none';
+  document.getElementById('designApp').style.display = isSql ? 'none' : 'grid';
+}
+
+/* ===================== SQL: 描画・操作 ===================== */
+function renderSchema() {
+  const el = document.getElementById('schemaArea');
+  el.innerHTML = SCHEMA.map(t => `
+    <div class="schema-table">
+      <div class="schema-name">${t.name} <span style="color:var(--mid);font-weight:400;font-size:0.8rem;">(${t.desc})</span></div>
+      <div class="schema-cols">${t.cols.map(c=>`<div class="col ${c.tag||''}">${c.c} <span style="color:var(--mid);">${c.t}</span>${c.note?` <span style="color:var(--mid);">— ${c.note}</span>`:''}</div>`).join('')}</div>
+    </div>`).join('') + `<details><summary>サンプルデータを見る</summary><div id="sampleData"></div></details>`;
+  setTimeout(() => { const sd=document.getElementById('sampleData'); if(!sd)return; let html='';
+    ['customers','products','orders'].forEach(tn=>{const r=db.exec('SELECT * FROM '+tn); if(r.length) html+=`<div class="res-label">${tn}</div>`+resultToTable(r[0]);}); sd.innerHTML=html; },0);
+}
+function renderPalette() {
+  document.getElementById('palette').innerHTML = PALETTE.map(g => `
+    <div class="pal-group"><div class="pal-title">${g.title}</div>
+      <div class="pal-items">${g.items.map(it=>`<button class="tok ${g.cls}" data-tok="${escAttr(it)}">${escapeHtml(it)}</button>`).join('')}</div></div>`).join('');
+  document.querySelectorAll('#palette .tok').forEach(b => b.onclick = () => { tokens.push(b.dataset.tok); renderBuild(); });
+}
+function renderNav() {
+  const nav = document.getElementById('probNav');
+  nav.innerHTML = PROBLEMS.map((p,i)=>`<button class="prob-btn ${i===current?'active':''} ${solved[i]?'solved':''}" data-i="${i}">${i+1}</button>`).join('');
+  nav.querySelectorAll('.prob-btn').forEach(b => b.onclick = () => loadProblem(parseInt(b.dataset.i)));
+}
+function loadProblem(i) {
+  current=i; tokens=[]; const p=PROBLEMS[i];
+  document.getElementById('probMeta').innerHTML = `<span class="level-badge ${p.cls}">${p.levelLabel}</span>`;
+  document.getElementById('questionText').textContent = `問題 ${i+1}. ${p.q}`;
+  document.getElementById('msgArea').innerHTML=''; document.getElementById('resultArea').innerHTML=''; document.getElementById('hintArea').innerHTML='';
+  document.getElementById('progressText').textContent = `SOLVED: ${Object.keys(solved).length} / ${PROBLEMS.length}`;
+  switchTab('schema'); renderBuild(); renderNav();
+}
+function renderBuild() {
+  const ba = document.getElementById('buildArea');
+  ba.innerHTML = tokens.length ? tokens.map((t,i)=>`<span class="chip placed" data-i="${i}">${escapeHtml(t)}</span>`).join('') : `<span class="placeholder-hint">下のパレットから部品をタップして組み立て。置いた部品をタップすると削除できます。</span>`;
+  ba.querySelectorAll('.chip.placed').forEach(c => c.onclick = () => { tokens.splice(parseInt(c.dataset.i),1); renderBuild(); });
+  document.getElementById('builtSql').innerHTML = tokens.length ? escapeHtml(buildSQL(tokens)) : `<span class="lbl">組み立てたSQLがここに表示されます</span>`;
+}
+function buildSQL(toks) {
+  let s=''; toks.forEach((t,i)=>{ if(i===0){s+=t;return;} const prev=toks[i-1];
+    if(t==='.'||prev==='.') s+=t; else if(t===','||t===';'||t===')') s+=t; else if(t==='(') s+=t; else if(prev==='(') s+=t; else s+=' '+t; });
+  return s;
+}
+function switchTab(which, flash) {
+  const isSchema = which==='schema';
+  document.getElementById('tabSchema').classList.toggle('active', isSchema);
+  document.getElementById('tabResult').classList.toggle('active', !isSchema);
+  document.getElementById('schemaArea').style.display = isSchema?'block':'none';
+  document.getElementById('resultArea').style.display = isSchema?'none':'block';
+  if(flash){ const tab=document.getElementById(isSchema?'tabSchema':'tabResult'); tab.classList.remove('flash'); void tab.offsetWidth; tab.classList.add('flash'); }
+}
+function runQuery() {
+  const sql = buildSQL(tokens).trim(); const msg=document.getElementById('msgArea'), res=document.getElementById('resultArea');
+  msg.innerHTML=''; res.innerHTML='';
+  if(!sql){ msg.innerHTML=`<div class="msg msg-info">部品を選んでSQLを組み立ててください。</div>`; return; }
+  try { const r=db.exec(sql);
+    res.innerHTML = r.length ? `<div class="res-label">実行結果（${r[0].values.length}行）</div>`+resultToTable(r[0]) : `<div class="msg msg-info">実行しました（返ってきた行はありません）。</div>`;
+    switchTab('result', true);
+  } catch(e){ msg.innerHTML=`<div class="msg msg-err">⚠ SQLエラー: ${escapeHtml(e.message)}</div>`; }
+}
+function checkAnswer() {
+  const sql = buildSQL(tokens).trim(); const msg=document.getElementById('msgArea'), res=document.getElementById('resultArea');
+  msg.innerHTML=''; res.innerHTML='';
+  if(!sql){ msg.innerHTML=`<div class="msg msg-info">部品を選んでSQLを組み立ててください。</div>`; return; }
+  let u,a;
+  try{ u=db.exec(sql);}catch(e){ msg.innerHTML=`<div class="msg msg-err">⚠ SQLエラー: ${escapeHtml(e.message)}</div>`; return; }
+  try{ a=db.exec(PROBLEMS[current].answer);}catch(e){ msg.innerHTML=`<div class="msg msg-err">解答例エラー: ${escapeHtml(e.message)}</div>`; return; }
+  const uu=u.length?u[0]:{columns:[],values:[]}, aa=a.length?a[0]:{columns:[],values:[]};
+  const correct = compareResults(uu, aa);
+  res.innerHTML = uu.values.length ? `<div class="res-label">あなたの結果（${uu.values.length}行）</div>`+resultToTable(uu) : `<div class="res-label">あなたの結果</div><div class="msg msg-info">返ってきた行はありません。</div>`;
+  switchTab('result', true);
+  if(correct){ solved[current]=true; msg.innerHTML=`<div class="msg msg-ok">🎉 正解です！結果が一致しました。</div>`; renderNav();
+    document.getElementById('progressText').textContent=`SOLVED: ${Object.keys(solved).length} / ${PROBLEMS.length}`; showPopup(true,'sql');
+  } else { msg.innerHTML=`<div class="msg msg-ng">❌ 不正解です。期待される結果と一致しませんでした。</div>`; showPopup(false,'sql'); }
+}
+function compareResults(u,a){ if(u.values.length!==a.values.length)return false; if(u.columns.length!==a.columns.length)return false;
+  const norm=arr=>arr.map(r=>r.map(v=>v===null?'∅':String(v)).join('\u0001')).sort(); const us=norm(u.values),as=norm(a.values);
+  for(let i=0;i<us.length;i++) if(us[i]!==as[i])return false; return true; }
+function resultToTable(r){ let h='<div class="table-scroll"><table class="data"><tr>'+r.columns.map(c=>`<th>${escapeHtml(c)}</th>`).join('')+'</tr>';
+  r.values.forEach(row=>h+='<tr>'+row.map(v=>`<td>${v===null?'<span style="color:var(--mid);">NULL</span>':escapeHtml(String(v))}</td>`).join('')+'</tr>'); return h+'</table></div>'; }
+
+/* ===================== 設計: 描画・操作 ===================== */
+function renderDNav() {
+  const nav = document.getElementById('dProbNav');
+  nav.innerHTML = DPROBLEMS.map((p,i)=>`<button class="prob-btn ${i===dcur?'active':''} ${dsolved[i]?'solved':''}" data-i="${i}">${i+1}</button>`).join('');
+  nav.querySelectorAll('.prob-btn').forEach(b => b.onclick = () => loadDProblem(parseInt(b.dataset.i)));
+}
+function loadDProblem(i) {
+  dcur=i; design=[]; const p=DPROBLEMS[i];
+  document.getElementById('dProbMeta').innerHTML = `<span class="level-badge ${p.cls}">${p.levelLabel}</span>`;
+  document.getElementById('dQuestionText').textContent = `課題 ${i+1}. ${p.q}`;
+  document.getElementById('dMsgArea').innerHTML=''; document.getElementById('dHintArea').innerHTML='';
+  document.getElementById('dResultArea').innerHTML='';
+  document.getElementById('dProgressText').textContent=`SOLVED: ${Object.keys(dsolved).length} / ${DPROBLEMS.length}`;
+  dSwitchTab('preview'); renderDesign(); renderDNav();
+}
+function renderDesign() {
+  const p = DPROBLEMS[dcur];
+  const usedTables = design.map(t=>t.name);
+  // ビルダー本体
+  document.getElementById('dBuilder').innerHTML = design.length
+    ? design.map((t,ti)=>tableCardHTML(t,ti)).join('')
+    : `<div class="placeholder-hint">下の「テーブルを追加」から始めましょう。</div>`;
+  // テーブル追加ピル
+  const avail = p.tablePool.filter(n=>!usedTables.includes(n));
+  document.getElementById('dAddTable').innerHTML = avail.length
+    ? avail.map(n=>`<button class="d-tablepill" data-add="${escAttr(n)}">+ ${escapeHtml(n)}</button>`).join('')
+    : `<span class="placeholder-hint">追加できるテーブルはありません</span>`;
+  // ハンドラ
+  attachDesignHandlers();
+  renderDPreview();
+}
+function tableCardHTML(t, ti) {
+  const p = DPROBLEMS[dcur];
+  const usedCols = t.columns.map(c=>c.name);
+  const colPool = (p.columnPool[t.name]||[]).filter(c=>!usedCols.includes(c));
+  const otherTables = design.map(x=>x.name).filter(n=>n!==t.name);
+  const rows = t.columns.map((c,ci)=>`
+    <div class="d-col-row">
+      <span class="d-col-name">${escapeHtml(c.name)}</span>
+      <select class="d-sel d-type" data-ti="${ti}" data-ci="${ci}">
+        ${TYPE_OPTIONS.map(tp=>`<option value="${tp}" ${c.type===tp?'selected':''}>${tp}</option>`).join('')}
+      </select>
+      <label class="d-chk"><input type="checkbox" class="d-pk" data-ti="${ti}" data-ci="${ci}" ${c.pk?'checked':''}>PK</label>
+      <select class="d-sel d-fk" data-ti="${ti}" data-ci="${ci}">
+        <option value="">FK: なし</option>
+        ${otherTables.map(n=>`<option value="${escAttr(n)}" ${c.ref===n?'selected':''}>FK→${escapeHtml(n)}</option>`).join('')}
+      </select>
+      <button class="d-col-del" data-ti="${ti}" data-ci="${ci}" title="列を削除">✕</button>
+    </div>`).join('');
+  return `
+    <div class="d-table">
+      <div class="d-table-head">
+        <span class="d-table-name">${escapeHtml(t.name)}</span>
+        <button class="d-mini d-del-table" data-ti="${ti}">テーブル削除</button>
+      </div>
+      <div class="d-cols">
+        <div class="d-col-head"><span>列名</span><span>型</span><span>主キー</span><span>外部キー</span><span></span></div>
+        ${t.columns.length ? rows : '<div class="placeholder-hint">下から列を追加</div>'}
+        <div class="d-addcol">
+          <span class="lbl">列を追加</span>
+          ${colPool.length ? colPool.map(c=>`<button class="d-pill d-addcol-btn" data-ti="${ti}" data-col="${escAttr(c)}">+ ${escapeHtml(c)}</button>`).join('') : '<span class="placeholder-hint">候補なし</span>'}
+        </div>
+      </div>
+    </div>`;
+}
+function attachDesignHandlers() {
+  document.querySelectorAll('#dAddTable .d-tablepill').forEach(b => b.onclick = () => {
+    design.push({ name:b.dataset.add, columns:[] }); renderDesign();
+  });
+  document.querySelectorAll('.d-del-table').forEach(b => b.onclick = () => { design.splice(+b.dataset.ti,1); renderDesign(); });
+  document.querySelectorAll('.d-col-del').forEach(b => b.onclick = () => { design[+b.dataset.ti].columns.splice(+b.dataset.ci,1); renderDesign(); });
+  document.querySelectorAll('.d-addcol-btn').forEach(b => b.onclick = () => {
+    design[+b.dataset.ti].columns.push({ name:b.dataset.col, type:'INTEGER', pk:false, ref:'' }); renderDesign();
+  });
+  document.querySelectorAll('.d-type').forEach(s => s.onchange = () => { design[+s.dataset.ti].columns[+s.dataset.ci].type = s.value; renderDPreview(); });
+  document.querySelectorAll('.d-pk').forEach(c => c.onchange = () => { design[+c.dataset.ti].columns[+c.dataset.ci].pk = c.checked; renderDPreview(); });
+  document.querySelectorAll('.d-fk').forEach(s => s.onchange = () => { design[+s.dataset.ti].columns[+s.dataset.ci].ref = s.value; renderDPreview(); });
+}
+function renderDPreview() {
+  const el = document.getElementById('dPreviewArea');
+  if(!design.length){ el.innerHTML = `<div class="placeholder-hint">テーブルを追加すると、ここに設計が表示されます。</div>`; return; }
+  el.innerHTML = design.map(t=>`
+    <div class="d-preview-tbl">
+      <div class="d-preview-name">${escapeHtml(t.name)}</div>
+      ${t.columns.length ? t.columns.map(c=>`<div class="d-preview-col">${escapeHtml(c.name)} <span style="color:var(--mid);">${c.type}</span>${c.pk?' <span class="pktag">[PK]</span>':''}${c.ref?` <span class="tag">[FK→${escapeHtml(c.ref)}]</span>`:''}</div>`).join('') : '<div class="d-preview-col" style="color:var(--mid);">(列なし)</div>'}
+    </div>`).join('');
+}
+function dSwitchTab(which, flash) {
+  const isPrev = which==='preview';
+  document.getElementById('dTabPreview').classList.toggle('active', isPrev);
+  document.getElementById('dTabResult').classList.toggle('active', !isPrev);
+  document.getElementById('dPreviewArea').style.display = isPrev?'block':'none';
+  document.getElementById('dResultArea').style.display = isPrev?'none':'block';
+  if(flash){ const tab=document.getElementById(isPrev?'dTabPreview':'dTabResult'); tab.classList.remove('flash'); void tab.offsetWidth; tab.classList.add('flash'); }
+}
+function checkDesign() {
+  const p = DPROBLEMS[dcur], ans = p.answer;
+  const msg = document.getElementById('dMsgArea');
+  if(!design.length){ msg.innerHTML=`<div class="msg msg-info">テーブルを追加して設計を組み立ててください。</div>`; return; }
+  const userMap = {}; design.forEach(t=>userMap[t.name.toLowerCase()]=t);
+  const checks=[]; let allOk=true;
+  Object.keys(ans).forEach(tn=>{
+    const ut = userMap[tn.toLowerCase()];
+    if(!ut){ checks.push([false,`テーブル「${tn}」が必要です`]); allOk=false; return; }
+    checks.push([true,`テーブル「${tn}」がある`]);
+    ans[tn].forEach(ec=>{
+      const uc = ut.columns.find(c=>c.name.toLowerCase()===ec.name.toLowerCase());
+      if(!uc){ checks.push([false,`${tn}.${ec.name} 列が必要です`]); allOk=false; return; }
+      const tOk = uc.type===ec.type;
+      const pOk = !!uc.pk === !!ec.pk;
+      const ecref=(ec.ref||'').toLowerCase(), ucref=(uc.ref||'').toLowerCase();
+      const fOk = ecref===ucref;
+      if(tOk&&pOk&&fOk){ checks.push([true,`${tn}.${ec.name}（${ec.type}${ec.pk?' PK':''}${ec.ref?` FK→${ec.ref}`:''}）OK`]); }
+      else {
+        if(!tOk){ checks.push([false,`${tn}.${ec.name} の型は ${ec.type} が適切（現在 ${uc.type}）`]); allOk=false; }
+        if(!pOk){ checks.push([false,`${tn}.${ec.name} は${ec.pk?'主キー(PK)にする':'主キーにしない'}`]); allOk=false; }
+        if(!fOk){ checks.push([false,`${tn}.${ec.name} は${ec.ref?`「${ec.ref}」への外部キー(FK)`:'外部キーなし'}が適切`]); allOk=false; }
+      }
+    });
+    ut.columns.forEach(uc=>{ if(!ans[tn].find(ec=>ec.name.toLowerCase()===uc.name.toLowerCase())){ checks.push([false,`${tn}.${uc.name} は不要な列です`]); allOk=false; } });
+  });
+  design.forEach(t=>{ if(!Object.keys(ans).find(tn=>tn.toLowerCase()===t.name.toLowerCase())){ checks.push([false,`テーブル「${t.name}」は不要（正規化の観点で見直しを）`]); allOk=false; } });
+
+  document.getElementById('dResultArea').innerHTML =
+    `<div class="res-label">判定結果（${checks.filter(c=>c[0]).length} / ${checks.length} 項目クリア）</div>` +
+    checks.map(c=>`<div class="d-check ${c[0]?'ok':'ng'}"><span class="ic">${c[0]?'✓':'✗'}</span><span>${escapeHtml(c[1])}</span></div>`).join('');
+  dSwitchTab('result', true);
+
+  if(allOk){ dsolved[dcur]=true; msg.innerHTML=`<div class="msg msg-ok">🎉 正しく正規化された設計です！</div>`; renderDNav();
+    document.getElementById('dProgressText').textContent=`SOLVED: ${Object.keys(dsolved).length} / ${DPROBLEMS.length}`; showPopup(true,'design');
+  } else { msg.innerHTML=`<div class="msg msg-ng">❌ まだ改善点があります。「判定結果」タブの ✗ 項目を確認してください。</div>`; showPopup(false,'design'); }
+}
+
+/* ===================== 共通ポップアップ ===================== */
+function showPopup(correct, mode) {
+  popupMode = mode;
+  const box=document.getElementById('modalBox');
+  const cnt = mode==='sql'?Object.keys(solved).length:Object.keys(dsolved).length;
+  const total = mode==='sql'?PROBLEMS.length:DPROBLEMS.length;
+  const allDone = correct && cnt===total;
+  box.classList.toggle('ng', !correct);
+  if(correct){
+    box.querySelector('.emoji').textContent = allDone?'🏆':'🎉';
+    box.querySelector('h3').textContent = allDone?'全問クリア！':'正解！';
+    box.querySelector('p').textContent = allDone ? 'すべてクリアしました。お見事です！' : (mode==='sql'?'結果が一致しました。よくできました！':'正しく正規化された設計です！');
+    document.getElementById('modalNext').style.display = allDone?'none':'';
+    document.getElementById('modalNext').textContent = '次へ →';
+  } else {
+    box.querySelector('.emoji').textContent='❌';
+    box.querySelector('h3').textContent='不正解';
+    box.querySelector('p').textContent = mode==='sql' ? '期待される結果と一致しませんでした。ヒントや解答例も活用しましょう。' : '改善点があります。判定結果の ✗ 項目を確認しましょう。';
+    document.getElementById('modalNext').style.display='';
+    document.getElementById('modalNext').textContent='もう一度挑戦';
+  }
+  document.getElementById('modalProgress').textContent=`SOLVED: ${cnt} / ${total}`;
+  document.getElementById('overlay').classList.add('show');
+}
+function hidePopup(){ document.getElementById('overlay').classList.remove('show'); }
+
+function showInfoPopup(title, html) {
+  document.getElementById('infoTitle').textContent = title;
+  document.getElementById('infoBody').innerHTML = html;
+  document.getElementById('infoOverlay').classList.add('show');
+}
+function hideInfoPopup(){ document.getElementById('infoOverlay').classList.remove('show'); }
+
+/* ===================== イベント結線 ===================== */
+function bindEvents() {
+  document.getElementById('modeSql').onclick = ()=>switchMode('sql');
+  document.getElementById('modeDesign').onclick = ()=>switchMode('design');
+
+  document.getElementById('btnRun').onclick = runQuery;
+  document.getElementById('btnCheck').onclick = checkAnswer;
+  document.getElementById('btnUndo').onclick = ()=>{ tokens.pop(); renderBuild(); };
+  document.getElementById('btnClear').onclick = ()=>{ tokens=[]; renderBuild(); };
+  document.getElementById('btnHint').onclick = ()=> showInfoPopup('ヒント', `<div class="info-hint">💡 ${escapeHtml(PROBLEMS[current].hint)}</div>`);
+  document.getElementById('btnAnswer').onclick = ()=> showInfoPopup('解答例', `<div class="info-code">${escapeHtml(PROBLEMS[current].answer)}</div>`);
+  document.querySelectorAll('#sqlApp .tab').forEach(t => t.onclick = ()=>switchTab(t.dataset.tab));
+
+  document.getElementById('dBtnCheck').onclick = checkDesign;
+  document.getElementById('dBtnClear').onclick = ()=>{ design=[]; renderDesign(); document.getElementById('dMsgArea').innerHTML=''; };
+  document.getElementById('dBtnHint').onclick = ()=> showInfoPopup('ヒント', `<div class="info-hint">💡 ${escapeHtml(DPROBLEMS[dcur].hint)}</div>`);
+  document.getElementById('dBtnAnswer').onclick = ()=> showInfoPopup('模範解答', `<div class="info-code">${escapeHtml(DPROBLEMS[dcur].model)}</div>`);
+  document.querySelectorAll('#designApp .tab').forEach(t => t.onclick = ()=>dSwitchTab(t.dataset.dtab));
+
+  document.getElementById('modalClose').onclick = hidePopup;
+  document.getElementById('modalNext').onclick = ()=>{
+    hidePopup();
+    if(popupMode==='sql'){
+      if(!solved[current]) return;
+      let n=current; do{ n=(n+1)%PROBLEMS.length; }while(solved[n]&&n!==current); loadProblem(n);
+    } else {
+      if(!dsolved[dcur]) return;
+      let n=dcur; do{ n=(n+1)%DPROBLEMS.length; }while(dsolved[n]&&n!==dcur); loadDProblem(n);
+    }
+  };
+  document.getElementById('overlay').addEventListener('click', e=>{ if(e.target.id==='overlay') hidePopup(); });
+  document.getElementById('infoClose').onclick = hideInfoPopup;
+  document.getElementById('infoOverlay').addEventListener('click', e=>{ if(e.target.id==='infoOverlay') hideInfoPopup(); });
+  document.addEventListener('keydown', e=>{ if(e.key==='Escape'){ hidePopup(); hideInfoPopup(); } });
+}
+
+function escapeHtml(s){ return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function escAttr(s){ return String(s).replace(/"/g,'&quot;'); }
+</script>
+</body>
+</html>
