@@ -1,53 +1,15 @@
-header {
-  margin-bottom: 22px;
+/* 最上部のタイトルヘッダー（全幅） */
+.app-header {
+  margin-bottom: 16px;
   border-bottom: 1px solid #e5e7eb;
-  padding-bottom: 16px;
+  padding-bottom: 4px;
 }
 
-h1 {
+.app-header h1 {
   font-family: var(--head-font);
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.02em;
   font-size: 1.9rem;
   color: var(--ink);
-}
-
-.subtitle {
-  color: var(--mid);
-  font-size: 0.92rem;
-  margin-top: 6px;
-  font-weight: 300;
-}
-
-/* モード切替（最上位タブ） */
-.mode-tabs {
-  display: flex;
-  gap: 0;
-  margin-top: 16px;
-}
-
-.mode-tab {
-  padding: 11px 26px;
-  border: none;
-  background: var(--card);
-  color: var(--mid);
-  cursor: pointer;
-  font-family: var(--head-font);
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  font-size: 0.92rem;
-  min-height: 44px;
-  transition: all 0.12s;
-  border-bottom: 3px solid transparent;
-}
-
-.mode-tab:hover {
-  color: var(--ink);
-}
-
-.mode-tab.active {
-  background: var(--slate);
-  color: #fff;
 }

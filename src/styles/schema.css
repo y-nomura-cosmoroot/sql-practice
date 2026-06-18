@@ -2,40 +2,44 @@
   margin-bottom: 18px;
 }
 
-.schema-name {
-  font-family: var(--head-font);
-  font-weight: 700;
-  color: var(--slate);
-  font-size: 0.95rem;
-  margin-bottom: 5px;
-  text-transform: uppercase;
-  letter-spacing: 0.02em;
+/* タップして挿入できることを示すヒント */
+.schema-hint {
+  font-size: 0.82rem;
+  color: var(--mid);
+  margin-bottom: 12px;
+}
+
+/* テーブル名の行（名前トークン＋説明） */
+.schema-name-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 6px;
 }
 
 /* テーブル名の横に添える日本語の説明 */
 .schema-desc {
   color: var(--mid);
   font-weight: 400;
-  font-size: 0.8rem;
+  font-size: 0.82rem;
 }
 
+/* 列の一覧（各行：列名トークン＋型＋備考） */
 .schema-cols {
-  font-size: 0.84rem;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding-left: 6px;
+}
+
+.schema-col-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 0.82rem;
   color: var(--ink);
-}
-
-.schema-cols .col {
-  padding: 1px 0;
-}
-
-.schema-cols .pk {
-  color: var(--slate);
-  font-weight: 700;
-}
-
-.schema-cols .fk {
-  color: var(--teal);
-  font-weight: 700;
 }
 
 details summary {

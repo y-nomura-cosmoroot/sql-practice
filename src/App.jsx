@@ -1,27 +1,54 @@
 import { useState } from 'react';
-import Header from './components/Header.jsx';
+import Sidebar from './components/Sidebar.jsx';
 import SqlMode from './components/sql/SqlMode.jsx';
 import DesignMode from './components/design/DesignMode.jsx';
 import { useSqlDb } from './hooks/useSqlDb.js';
+import { useProblemSet } from './hooks/useProblemSet.js';
+import sqlProblems from './data/sqlProblems.json';
+import designProblems from './data/designProblems.json';
 
 export default function App() {
   const [mode, setMode] = useState('sql');
   const { db, loading, error } = useSqlDb();
 
+  // 問題セットの状態は App に持ち上げ、サイドバー（ナビ）と各モード（中身）で共有する。
+  const sqlSet = useProblemSet(sqlProblems.length);
+  const designSet = useProblemSet(designProblems.length);
+  const sets = { sql: sqlSet, design: designSet };
+
+  // サイドバーから問題を選ぶと、そのモードに切り替えて該当問題へ移動する。
+  const selectProblem = (modeKey, i) => {
+    setMode(modeKey);
+    sets[modeKey].goTo(i);
+  };
+
   return (
     <div className="wrap">
-      <Header mode={mode} onModeChange={setMode} />
+      <header className="app-header">
+        <h1>SQL &amp; DB Design Practice</h1>
+      </header>
 
-      {loading && <div className="loading">Loading SQL Engine...</div>}
-      {error && <div className="loading">読み込みに失敗しました: {error.message}</div>}
+      <div className="app-shell">
+        <Sidebar
+          mode={mode}
+          sets={sets}
+          onModeChange={setMode}
+          onSelectProblem={selectProblem}
+        />
 
-      {db && (
-        <>
-          {/* 両モードを常にマウントしておき、表示だけ切り替える（状態を保持）。 */}
-          <SqlMode db={db} hidden={mode !== 'sql'} />
-          <DesignMode hidden={mode !== 'design'} />
-        </>
-      )}
+        <main className="main-content">
+          {loading && <div className="loading">Loading SQL Engine...</div>}
+          {error && <div className="loading">読み込みに失敗しました: {error.message}</div>}
+
+          {db && (
+            <>
+              {/* 両モードを常にマウントしておき、表示だけ切り替える（状態を保持）。 */}
+              <SqlMode db={db} hidden={mode !== 'sql'} set={sqlSet} />
+              <DesignMode hidden={mode !== 'design'} set={designSet} />
+            </>
+          )}
+        </main>
+      </div>
     </div>
   );
 }

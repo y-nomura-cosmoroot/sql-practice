@@ -3,9 +3,10 @@ import schema from '../../data/schema.json';
 import DataTable from '../common/DataTable.jsx';
 
 /**
- * テーブル構成（スキーマ）と、折りたたみのサンプルデータを表示する。
+ * テーブル構成（スキーマ）。テーブル名・列名は部品パレットと同じトークンとして
+ * タップでき、SQL 組み立てエリアの挿入位置に入る。下部にサンプルデータ（折りたたみ）。
  */
-export default function SchemaView({ db }) {
+export default function SchemaView({ db, onPick }) {
   // サンプルデータは DB が用意できた時点で一度だけ取得する。
   const samples = useMemo(
     () =>
@@ -18,21 +19,32 @@ export default function SchemaView({ db }) {
 
   return (
     <div>
+      <div className="schema-hint">
+        テーブル名・列名をタップすると組み立てエリアに挿入できます。
+      </div>
+
       {schema.map((t) => (
         <div className="schema-table" key={t.name}>
-          <div className="schema-name">
-            {t.name} <span className="schema-desc">({t.desc})</span>
+          <div className="schema-name-row">
+            <button type="button" className="tok tb" onClick={() => onPick(t.name)}>
+              {t.name}
+            </button>
+            <span className="schema-desc">{t.desc}</span>
           </div>
           <div className="schema-cols">
             {t.cols.map((c, i) => (
-              <div className={`col ${c.tag || ''}`} key={i}>
-                {c.c} <span className="muted">{c.t}</span>
-                {c.note ? <span className="muted"> — {c.note}</span> : null}
+              <div className="schema-col-row" key={i}>
+                <button type="button" className="tok col" onClick={() => onPick(c.c)}>
+                  {c.c}
+                </button>
+                <span className="muted">{c.t}</span>
+                {c.note ? <span className="muted">{c.note}</span> : null}
               </div>
             ))}
           </div>
         </div>
       ))}
+
       <details>
         <summary>サンプルデータを見る</summary>
         <div>

@@ -44,7 +44,7 @@ export default function ResultModal({
         <h3>{title}</h3>
         <p>{body}</p>
         <div className="modal-progress">
-          SOLVED: {solvedCount} / {total}
+          正解: {solvedCount} / {total}
         </div>
         <div className="modal-btns">
           {!allDone && (

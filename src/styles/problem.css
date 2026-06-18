@@ -56,66 +56,21 @@
   justify-content: center;
 }
 
-/* レベルバッジ */
-.level-badge {
-  display: inline-block;
-  font-family: var(--head-font);
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-  font-size: 0.68rem;
-  padding: 3px 12px;
-  margin-bottom: 10px;
-  color: #fff;
-}
-
-.lv-basic {
-  background: var(--sage);
-}
-.lv-sort {
-  background: var(--teal);
-}
-.lv-agg {
-  background: var(--slate);
-}
-.lv-group {
-  background: var(--mauve);
-}
-.lv-join {
-  background: var(--ink);
-}
-.lv-sub {
-  background: #320c2d;
-}
-.lv-d1 {
-  background: var(--sage);
-}
-.lv-d2 {
-  background: var(--teal);
-}
-.lv-d3 {
-  background: var(--slate);
-}
-.lv-d4 {
-  background: var(--mauve);
-}
-.lv-d5 {
-  background: var(--ink);
-}
-
 .question {
   font-size: 1.1rem;
   color: var(--ink);
-  margin-bottom: 8px;
   font-weight: 400;
 }
 
-.progress {
+/* 「問題 N」「課題 N」のチップ。フォントサイズは .question を継承（変更しない） */
+.question-chip {
+  display: inline-block;
+  margin-right: 10px;
+  padding: 2px 12px;
+  background: var(--slate);
+  color: #fff;
   font-family: var(--head-font);
   font-weight: 700;
-  font-size: 0.82rem;
-  color: var(--mid);
-  letter-spacing: 0.02em;
 }
 
 /* 操作メッセージ */

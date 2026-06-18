@@ -1,10 +1,7 @@
 import { useEffect, useState } from 'react';
 import designProblems from '../../data/designProblems.json';
 import typeOptions from '../../data/typeOptions.json';
-import { useProblemSet } from '../../hooks/useProblemSet.js';
 import { checkDesign } from '../../lib/checkDesign.js';
-import LevelBadge from '../common/LevelBadge.jsx';
-import ProblemNav from '../common/ProblemNav.jsx';
 import Tabs from '../common/Tabs.jsx';
 import Message from '../common/Message.jsx';
 import ResultModal from '../common/ResultModal.jsx';
@@ -18,10 +15,8 @@ const TABS = [
   { key: 'result', label: '判定結果' },
 ];
 
-export default function DesignMode({ hidden }) {
-  const { current, solved, solvedCount, total, goTo, markSolved, nextUnsolved } = useProblemSet(
-    designProblems.length
-  );
+export default function DesignMode({ hidden, set }) {
+  const { current, solved, solvedCount, total, markSolved, markWrong, nextUnsolved } = set;
   const problem = designProblems[current];
 
   const [design, setDesign] = useState([]); // [{ name, columns: [{name,type,pk,ref}] }]
@@ -81,6 +76,7 @@ export default function DesignMode({ hidden }) {
       markSolved(current);
       setMessage({ kind: 'ok', text: '🎉 正しく正規化された設計です！' });
     } else {
+      markWrong(current);
       setMessage({
         kind: 'ng',
         text: '❌ まだ改善点があります。「判定結果」タブの ✗ 項目を確認してください。',
@@ -103,92 +99,97 @@ export default function DesignMode({ hidden }) {
   const allDone = !!modal?.correct && solvedCount === total;
 
   return (
-    <div className="layout" style={{ display: hidden ? 'none' : 'grid' }}>
-      <div className="col-left">
-        <div className="panel">
-          <h2>設計課題</h2>
-          <ProblemNav count={total} current={current} solved={solved} onSelect={goTo} />
-          <div>
-            <LevelBadge cls={problem.cls} label={problem.levelLabel} />
+    <div className="mode-view mode-view-design" style={{ display: hidden ? 'none' : 'block' }}>
+      {/* 設計課題：1カラム（全幅）。課題番号ナビは左サイドバーへ移動済み。 */}
+      <div className="panel">
+        <div className="question">
+          <span className="question-chip">課題 {current + 1}</span>
+          {problem.q}
+        </div>
+        <Message message={message} />
+      </div>
+
+      {/* その下：テーブルを設計する ｜ 設計プレビュー・判定結果 の2カラム */}
+      <div className="layout">
+        <div className="col-left">
+          <div className="panel">
+            <h2>テーブルを設計する</h2>
+            <div>
+              {design.length === 0 ? (
+                <div className="placeholder-hint">下の「テーブルを追加」から始めましょう。</div>
+              ) : (
+                design.map((t, ti) => (
+                  <TableCard
+                    key={t.name}
+                    table={t}
+                    ti={ti}
+                    columnPool={(problem.columnPool[t.name] || []).filter(
+                      (c) => !t.columns.some((uc) => uc.name === c)
+                    )}
+                    otherTables={design.map((x) => x.name).filter((n) => n !== t.name)}
+                    typeOptions={typeOptions}
+                    onRemoveTable={removeTable}
+                    onAddColumn={addColumn}
+                    onRemoveColumn={removeColumn}
+                    onUpdateColumn={updateColumn}
+                  />
+                ))
+              )}
+            </div>
+            <div className="d-addtable-section">
+              <div className="pal-title">テーブルを追加</div>
+              <div className="d-addtable">
+                {availableTables.length ? (
+                  availableTables.map((n) => (
+                    <button key={n} className="d-tablepill" onClick={() => addTable(n)}>
+                      + {n}
+                    </button>
+                  ))
+                ) : (
+                  <span className="placeholder-hint">追加できるテーブルはありません</span>
+                )}
+              </div>
+            </div>
           </div>
-          <div className="question">
-            課題 {current + 1}. {problem.q}
-          </div>
-          <div className="progress">
-            SOLVED: {solvedCount} / {total}
-          </div>
-          <div className="btn-row">
-            <button className="action btn-check" onClick={runCheck}>
-              ✓ 設計を判定
-            </button>
-            <button className="action btn-del" onClick={clear}>
-              クリア
-            </button>
-            <button
-              className="action btn-ghost"
-              onClick={() => setInfo({ title: 'ヒント', kind: 'hint', text: problem.hint })}
-            >
-              ヒント
-            </button>
-            <button
-              className="action btn-ghost"
-              onClick={() => setInfo({ title: '模範解答', kind: 'answer', text: problem.model })}
-            >
-              模範解答
-            </button>
-          </div>
-          <Message message={message} />
         </div>
 
-        <div className="panel">
-          <h2>テーブルを設計する</h2>
-          <div>
-            {design.length === 0 ? (
-              <div className="placeholder-hint">下の「テーブルを追加」から始めましょう。</div>
-            ) : (
-              design.map((t, ti) => (
-                <TableCard
-                  key={t.name}
-                  table={t}
-                  ti={ti}
-                  columnPool={(problem.columnPool[t.name] || []).filter(
-                    (c) => !t.columns.some((uc) => uc.name === c)
-                  )}
-                  otherTables={design.map((x) => x.name).filter((n) => n !== t.name)}
-                  typeOptions={typeOptions}
-                  onRemoveTable={removeTable}
-                  onAddColumn={addColumn}
-                  onRemoveColumn={removeColumn}
-                  onUpdateColumn={updateColumn}
-                />
-              ))
-            )}
-          </div>
-          <div className="d-addtable-section">
-            <div className="pal-title">テーブルを追加</div>
-            <div className="d-addtable">
-              {availableTables.length ? (
-                availableTables.map((n) => (
-                  <button key={n} className="d-tablepill" onClick={() => addTable(n)}>
-                    + {n}
-                  </button>
-                ))
-              ) : (
-                <span className="placeholder-hint">追加できるテーブルはありません</span>
-              )}
+        <div className="col-right">
+          <div className="panel">
+            <Tabs tabs={TABS} active={activeTab} onChange={setActiveTab} flashSignal={flash} />
+            <div className="tab-body" style={{ display: activeTab === 'preview' ? 'block' : 'none' }}>
+              <DesignPreview design={design} />
+            </div>
+            <div className="tab-body" style={{ display: activeTab === 'result' ? 'block' : 'none' }}>
+              <DesignResult checks={checks} />
             </div>
           </div>
         </div>
       </div>
 
-      <div className="col-right">
-        <div className="panel">
-          <Tabs tabs={TABS} active={activeTab} onChange={setActiveTab} flashSignal={flash} />
-          <div className="tab-body" style={{ display: activeTab === 'preview' ? 'block' : 'none' }}>
-            <DesignPreview design={design} />
-          </div>
-          <div className="tab-body" style={{ display: activeTab === 'result' ? 'block' : 'none' }}>
-            <DesignResult checks={checks} />
+      {/* アクションボタン群を下部に固定（右カラム幅に一致） */}
+      <div className="composer-dock">
+        <div className="composer-dock-inner">
+          <div className="composer-panel">
+            <div className="btn-row composer-actions">
+              <button className="action btn-check" onClick={runCheck}>
+                ✓ 設計を判定
+              </button>
+              <button className="action btn-del" onClick={clear}>
+                クリア
+              </button>
+              <button
+                className="action btn-ghost"
+                onClick={() => setInfo({ title: 'ヒント', kind: 'hint', text: problem.hint })}
+              >
+                ヒント
+              </button>
+              <button
+                className="action btn-ghost"
+                onClick={() => setInfo({ title: '模範解答', kind: 'answer', text: problem.model })}
+              >
+                模範解答
+              </button>
+            </div>
           </div>
         </div>
       </div>

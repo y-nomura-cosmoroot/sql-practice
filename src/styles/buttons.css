@@ -5,6 +5,66 @@
   margin-top: 16px;
 }
 
+/* 組み立てコンポーザー（SQL組み立て～挿入位置＋アクション）を下部に固定。
+   app-shell と同じグリッドで内側を割り、メイン側（grid-column 2）に置くことで
+   パネルの左右がメインコンテンツ＝右カラムと一致する。 */
+.composer-dock {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 50;
+  padding: 0 20px; /* body の左右パディングに合わせる */
+  pointer-events: none; /* 透明な余白は背後の操作を妨げない */
+}
+
+.composer-dock-inner {
+  max-width: 1280px; /* .wrap と同じ */
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 230px 1fr; /* app-shell と同じ（サイドバー | メイン） */
+  gap: 28px;
+}
+
+.composer-panel {
+  grid-column: 2; /* メイン側に配置 → 右カラムと左右一致 */
+  pointer-events: auto;
+  background: var(--bg);
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 -6px 24px rgba(68, 84, 106, 0.12);
+  padding: 14px 16px 16px;
+  margin-bottom: 16px;
+}
+
+/* コンポーザー内のアクションボタンは右寄せ（右カラム右端に一致） */
+.composer-actions {
+  justify-content: flex-end;
+}
+
+/* 下部固定コンポーザーぶんの余白（最下部コンテンツが隠れないように）。
+   SQL は組み立て一式が入るため高め、設計はボタンのみなので低め。 */
+.mode-view-sql {
+  padding-bottom: 290px;
+}
+
+.mode-view-design {
+  padding-bottom: 110px;
+}
+
+/* 狭い画面では1カラム */
+@media (max-width: 880px) {
+  .composer-dock {
+    padding: 0 12px;
+  }
+  .composer-dock-inner {
+    grid-template-columns: 1fr;
+  }
+  .composer-panel {
+    grid-column: 1;
+    margin-bottom: 12px;
+  }
+}
+
 button.action {
   padding: 10px 18px;
   border: none;

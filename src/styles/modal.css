@@ -150,6 +150,23 @@
   background: #e5e7eb;
 }
 
+/* 実行結果・答え合わせのポップアップ（テーブルを表示するため広め） */
+.result-popup {
+  max-width: 640px;
+}
+
+/* 実行（中立）の結果はスレートの上辺色 */
+.result-popup.result-run {
+  border-top-color: var(--slate);
+}
+
+.result-popup-body {
+  text-align: left;
+  margin: 6px 0 18px;
+  max-height: 50vh;
+  overflow: auto;
+}
+
 /* 情報ポップアップ（ヒント・解答例）はやや広め＆左寄せ */
 .info-modal {
   text-align: left;
