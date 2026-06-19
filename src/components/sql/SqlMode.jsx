@@ -12,6 +12,7 @@ import ResultPopup from './ResultPopup.jsx';
 export default function SqlMode({ db, hidden, set }) {
   const { current, solved, solvedCount, total, markSolved, markWrong, nextUnsolved } = set;
   const problem = problems[current];
+  const isMutation = problem.type === 'mutation'; // INSERT 等の更新系問題
 
   const [tokens, setTokens] = useState([]);
   const [cursor, setCursor] = useState(0); // 挿入位置（0..tokens.length）
@@ -20,13 +21,14 @@ export default function SqlMode({ db, hidden, set }) {
   const [popup, setPopup] = useState(null); // { kind: 'run'|'check', correct }
   const [info, setInfo] = useState(null); // { title, kind, text }
 
-  // 問題が変わったら作業状態をリセット。
+  // 問題が変わったら作業状態をリセットし、ページ最上部までスクロールを戻す。
   useEffect(() => {
     setTokens([]);
     setCursor(0);
     setMessage(null);
     setResult(null);
     setPopup(null);
+    window.scrollTo(0, 0);
   }, [current]);
 
   const sql = buildSql(tokens).trim();
@@ -49,6 +51,27 @@ export default function SqlMode({ db, hidden, set }) {
   const moveCursor = (delta) =>
     setCursor((c) => Math.max(0, Math.min(tokens.length, c + delta)));
 
+  // 実行は常にトランザクションで囲い、最後に必ず ROLLBACK する。これにより
+  // SELECT 問題で誤って INSERT 等を実行されても実DBは汚れない（巻き戻る）。
+  // 返す結果は、SELECT 問題なら実行したSQLの結果、更新系なら verify（テーブル状態）。
+  const getResultState = (sqlText) => {
+    db.exec('BEGIN');
+    try {
+      const r = db.exec(sqlText);
+      if (isMutation) {
+        const vr = db.exec(problem.verify);
+        return vr.length ? vr[0] : { columns: [], values: [] };
+      }
+      return r.length ? r[0] : { columns: [], values: [] };
+    } finally {
+      try {
+        db.exec('ROLLBACK');
+      } catch {
+        /* 既に未トランザクション等は無視 */
+      }
+    }
+  };
+
   const runQuery = () => {
     setMessage(null);
     if (!sql) {
@@ -56,12 +79,15 @@ export default function SqlMode({ db, hidden, set }) {
       return;
     }
     try {
-      const r = db.exec(sql);
-      setResult(
-        r.length
-          ? { label: `実行結果（${r[0].values.length}行）`, table: r[0], emptyText: null }
-          : { label: null, table: null, emptyText: '実行しました（返ってきた行はありません）。' }
-      );
+      const state = getResultState(sql);
+      const rows = state.values.length;
+      if (isMutation) {
+        setResult({ label: `実行後のテーブル（${rows}行）`, table: state, emptyText: null });
+      } else if (rows) {
+        setResult({ label: `実行結果（${rows}行）`, table: state, emptyText: null });
+      } else {
+        setResult({ label: null, table: null, emptyText: '実行しました（返ってきた行はありません）。' });
+      }
       setPopup({ kind: 'run' });
     } catch (e) {
       setMessage({ kind: 'err', text: `⚠ SQLエラー: ${e.message}` });
@@ -74,29 +100,29 @@ export default function SqlMode({ db, hidden, set }) {
       setMessage({ kind: 'info', text: '部品を選んでSQLを組み立ててください。' });
       return;
     }
-    let u;
+    let uu;
     try {
-      u = db.exec(sql);
+      uu = getResultState(sql);
     } catch (e) {
       setMessage({ kind: 'err', text: `⚠ SQLエラー: ${e.message}` });
       return;
     }
-    let a;
+    let aa;
     try {
-      a = db.exec(problem.answer);
+      aa = getResultState(problem.answer);
     } catch (e) {
       setMessage({ kind: 'err', text: `解答例エラー: ${e.message}` });
       return;
     }
-    const uu = u.length ? u[0] : { columns: [], values: [] };
-    const aa = a.length ? a[0] : { columns: [], values: [] };
     const correct = compareResults(uu, aa);
-
-    setResult(
-      uu.values.length
-        ? { label: `あなたの結果（${uu.values.length}行）`, table: uu, emptyText: null }
-        : { label: 'あなたの結果', table: null, emptyText: '返ってきた行はありません。' }
-    );
+    const rows = uu.values.length;
+    if (isMutation) {
+      setResult({ label: `実行後のテーブル（${rows}行）`, table: uu, emptyText: null });
+    } else if (rows) {
+      setResult({ label: `あなたの結果（${rows}行）`, table: uu, emptyText: null });
+    } else {
+      setResult({ label: 'あなたの結果', table: null, emptyText: '返ってきた行はありません。' });
+    }
 
     if (correct) markSolved(current);
     else markWrong(current);
@@ -114,8 +140,8 @@ export default function SqlMode({ db, hidden, set }) {
 
   return (
     <div className="mode-view mode-view-sql" style={{ display: hidden ? 'none' : 'block' }}>
-      {/* 問題：1カラム（全幅）。問題番号・レベルは左サイドバーのメニューに表示。 */}
-      <div className="panel">
+      {/* 問題：1カラム（全幅）。スクロールしても上部に追従（sticky）。 */}
+      <div className="panel question-panel">
         <div className="question">
           <span className="question-chip">問題 {current + 1}</span>
           {problem.q}
@@ -132,7 +158,7 @@ export default function SqlMode({ db, hidden, set }) {
         <div className="col-right">
           <div className="panel">
             <h2>SQL部品</h2>
-            <Palette onPick={insertToken} />
+            <Palette onPick={insertToken} extraGroups={problem.extraTokens} />
           </div>
         </div>
       </div>

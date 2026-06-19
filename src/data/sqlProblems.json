@@ -138,5 +138,176 @@
     "q": "売上（単価×数量の合計）が高い製品トップ3を、製品名(product_name)と売上で表示してください。",
     "hint": "orders と products を JOIN → SUM ( products.unit_price * orders.quantity ) を製品名で GROUP BY → 同じ式で ORDER BY ... DESC → LIMIT 3。",
     "answer": "SELECT products.product_name, SUM(products.unit_price * orders.quantity) FROM orders JOIN products ON orders.product_id = products.product_id GROUP BY products.product_name ORDER BY SUM(products.unit_price * orders.quantity) DESC LIMIT 3;"
+  },
+  {
+    "cls": "lv-ins",
+    "type": "mutation",
+    "levelLabel": "INSERT(基本)",
+    "q": "products に新しい製品を1行追加してください（product_id=107、product_name='キーボード'、category='電子機器'、unit_price=5000）。",
+    "hint": "INSERT INTO products VALUES ( 107 , 'キーボード' , '電子機器' , 5000 )。列の並び順どおりに値を書きます。実際にはDBは変更されず、判定後は元に戻ります。",
+    "answer": "INSERT INTO products VALUES (107, 'キーボード', '電子機器', 5000);",
+    "verify": "SELECT * FROM products",
+    "extraTokens": [
+      { "title": "この問題の値", "cls": "val", "items": ["107", "'キーボード'", "'電子機器'", "5000"] }
+    ]
+  },
+  {
+    "cls": "lv-ins",
+    "type": "mutation",
+    "levelLabel": "INSERT…SELECT(行コピー)",
+    "q": "product_id=101（ノートPC）の行をコピーして新しい製品を1件追加してください。product_id は元の +100、製品名は末尾に『のコピー』、単価は2倍、カテゴリは同じにします（INSERT … SELECT を使い、同じ行の値から計算します）。",
+    "hint": "INSERT INTO products SELECT product_id + 100 , product_name || 'のコピー' , category , unit_price * 2 FROM products WHERE product_id = 101。`||` は文字列の連結です。",
+    "answer": "INSERT INTO products SELECT product_id + 100, product_name || 'のコピー', category, unit_price * 2 FROM products WHERE product_id = 101;",
+    "verify": "SELECT * FROM products",
+    "extraTokens": [
+      { "title": "この問題の値", "cls": "val", "items": ["101", "100", "'のコピー'", "2"] }
+    ]
+  },
+  {
+    "cls": "lv-ins",
+    "type": "mutation",
+    "levelLabel": "INSERT…SELECT(全顧客へ)",
+    "q": "全顧客に対して、お試し注文を1件ずつ orders に追加してください。order_id は 2000+customer_id、customer_id はその顧客のID、product_id=106、quantity=1、order_date='2024-07-01' とします（customers を参照して一括 INSERT）。",
+    "hint": "INSERT INTO orders SELECT 2000 + customer_id , customer_id , 106 , 1 , '2024-07-01' FROM customers。customers の各行ぶん挿入されます。",
+    "answer": "INSERT INTO orders SELECT 2000 + customer_id, customer_id, 106, 1, '2024-07-01' FROM customers;",
+    "verify": "SELECT * FROM orders",
+    "extraTokens": [
+      { "title": "この問題の値", "cls": "val", "items": ["2000", "106", "1", "'2024-07-01'"] }
+    ]
+  },
+  {
+    "cls": "lv-ins",
+    "type": "mutation",
+    "levelLabel": "INSERT…SELECT(全体集計)",
+    "q": "全製品をまとめた製品『フルセット』を products に追加してください。product_id=300、category='セット'、単価は既存の全製品の単価合計（SUM）にします（集計の結果1行を挿入）。",
+    "hint": "INSERT INTO products SELECT 300 , 'フルセット' , 'セット' , SUM ( unit_price ) FROM products。集計関数を使うと全行が1行にまとまります。",
+    "answer": "INSERT INTO products SELECT 300, 'フルセット', 'セット', SUM(unit_price) FROM products;",
+    "verify": "SELECT * FROM products",
+    "extraTokens": [
+      { "title": "この問題の値", "cls": "val", "items": ["300", "'フルセット'", "'セット'"] }
+    ]
+  },
+  {
+    "cls": "lv-ins",
+    "type": "mutation",
+    "levelLabel": "INSERT…SELECT(カテゴリ別集計)",
+    "q": "カテゴリごとに、その全製品をまとめた『○○セット』を products に追加してください。製品名は『カテゴリ名+セット』、category は 'セット'、単価はそのカテゴリの単価合計（SUM）にします。product_id は指定せず自動採番にします（列名を指定する INSERT … SELECT ＋ GROUP BY）。",
+    "hint": "INSERT INTO products ( product_name , category , unit_price ) SELECT category || 'セット' , 'セット' , SUM ( unit_price ) FROM products GROUP BY category。product_id を書かず列名を指定すると自動採番され、カテゴリごとに1行ずつ入ります。",
+    "answer": "INSERT INTO products (product_name, category, unit_price) SELECT category || 'セット', 'セット', SUM(unit_price) FROM products GROUP BY category;",
+    "verify": "SELECT * FROM products",
+    "extraTokens": [
+      { "title": "この問題の値", "cls": "val", "items": ["'セット'"] }
+    ]
+  },
+  {
+    "cls": "lv-upd",
+    "type": "mutation",
+    "levelLabel": "UPDATE(基本)",
+    "q": "product_id=102（マウス）の単価を3000に変更してください。",
+    "hint": "UPDATE products SET unit_price = 3000 WHERE product_id = 102。SET で更新する列、WHERE で対象行を指定します。",
+    "answer": "UPDATE products SET unit_price = 3000 WHERE product_id = 102;",
+    "verify": "SELECT * FROM products",
+    "extraTokens": [
+      { "title": "この問題の値", "cls": "val", "items": ["3000", "102"] }
+    ]
+  },
+  {
+    "cls": "lv-upd",
+    "type": "mutation",
+    "levelLabel": "UPDATE(一括計算)",
+    "q": "全製品の単価を一律1000円値上げしてください（WHEREなしで全行を更新）。",
+    "hint": "UPDATE products SET unit_price = unit_price + 1000。今の単価を使って計算できます。",
+    "answer": "UPDATE products SET unit_price = unit_price + 1000;",
+    "verify": "SELECT * FROM products",
+    "extraTokens": [
+      { "title": "この問題の値", "cls": "val", "items": ["1000"] }
+    ]
+  },
+  {
+    "cls": "lv-upd",
+    "type": "mutation",
+    "levelLabel": "UPDATE(条件付き)",
+    "q": "『家具』カテゴリの製品の単価を2倍にしてください。",
+    "hint": "UPDATE products SET unit_price = unit_price * 2 WHERE category = '家具'。",
+    "answer": "UPDATE products SET unit_price = unit_price * 2 WHERE category = '家具';",
+    "verify": "SELECT * FROM products",
+    "extraTokens": [
+      { "title": "この問題の値", "cls": "val", "items": ["'家具'"] }
+    ]
+  },
+  {
+    "cls": "lv-upd",
+    "type": "mutation",
+    "levelLabel": "UPDATE(文字列連結)",
+    "q": "地域が『東京』の顧客の顧客名の末尾に『(東京)』を付けてください。",
+    "hint": "UPDATE customers SET customer_name = customer_name || '(東京)' WHERE region = '東京'。`||` で文字列を連結します。",
+    "answer": "UPDATE customers SET customer_name = customer_name || '(東京)' WHERE region = '東京';",
+    "verify": "SELECT * FROM customers",
+    "extraTokens": [
+      { "title": "この問題の値", "cls": "val", "items": ["'(東京)'"] }
+    ]
+  },
+  {
+    "cls": "lv-upd",
+    "type": "mutation",
+    "levelLabel": "UPDATE(複数列)",
+    "q": "product_id=106（ペン）の製品名を『高級ペン』に、単価を500に変更してください（2列まとめて更新）。",
+    "hint": "UPDATE products SET product_name = '高級ペン' , unit_price = 500 WHERE product_id = 106。SET をカンマで区切ると複数列を更新できます。",
+    "answer": "UPDATE products SET product_name = '高級ペン', unit_price = 500 WHERE product_id = 106;",
+    "verify": "SELECT * FROM products",
+    "extraTokens": [
+      { "title": "この問題の値", "cls": "val", "items": ["'高級ペン'", "500", "106"] }
+    ]
+  },
+  {
+    "cls": "lv-del",
+    "type": "mutation",
+    "levelLabel": "DELETE(基本)",
+    "q": "product_id=106（ペン）を products から削除してください。",
+    "hint": "DELETE FROM products WHERE product_id = 106。WHERE で対象行を指定します。",
+    "answer": "DELETE FROM products WHERE product_id = 106;",
+    "verify": "SELECT * FROM products",
+    "extraTokens": [
+      { "title": "この問題の値", "cls": "val", "items": ["106"] }
+    ]
+  },
+  {
+    "cls": "lv-del",
+    "type": "mutation",
+    "levelLabel": "DELETE(条件)",
+    "q": "単価が2500円以下の製品を削除してください。",
+    "hint": "DELETE FROM products WHERE unit_price <= 2500。",
+    "answer": "DELETE FROM products WHERE unit_price <= 2500;",
+    "verify": "SELECT * FROM products",
+    "extraTokens": [
+      { "title": "この問題の値", "cls": "val", "items": ["2500"] }
+    ]
+  },
+  {
+    "cls": "lv-del",
+    "type": "mutation",
+    "levelLabel": "DELETE(地域)",
+    "q": "地域が『大阪』の顧客を customers から削除してください。",
+    "hint": "DELETE FROM customers WHERE region = '大阪'。値の『大阪』は基本パレットの「値」にあります。",
+    "answer": "DELETE FROM customers WHERE region = '大阪';",
+    "verify": "SELECT * FROM customers"
+  },
+  {
+    "cls": "lv-del",
+    "type": "mutation",
+    "levelLabel": "DELETE(全件)",
+    "q": "orders の注文をすべて削除してください（WHERE を付けないと全件削除になる点に注意）。",
+    "hint": "DELETE FROM orders。WHERE を付けないと全行が消えます。",
+    "answer": "DELETE FROM orders;",
+    "verify": "SELECT * FROM orders"
+  },
+  {
+    "cls": "lv-del",
+    "type": "mutation",
+    "levelLabel": "DELETE(サブクエリ)",
+    "q": "地域が『東京』の顧客による注文をすべて削除してください（サブクエリで東京の顧客を絞り込みます）。",
+    "hint": "DELETE FROM orders WHERE customer_id IN ( SELECT customer_id FROM customers WHERE region = '東京' )。",
+    "answer": "DELETE FROM orders WHERE customer_id IN (SELECT customer_id FROM customers WHERE region = '東京');",
+    "verify": "SELECT * FROM orders"
   }
 ]

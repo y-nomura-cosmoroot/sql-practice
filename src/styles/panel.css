@@ -11,15 +11,11 @@
   }
 }
 
-.col-right {
+/* 問題（課題）パネルはスクロールしても上部に追従する */
+.question-panel {
   position: sticky;
-  top: 16px;
-}
-
-@media (max-width: 880px) {
-  .col-right {
-    position: static;
-  }
+  top: 0;
+  z-index: 30;
 }
 
 .panel {

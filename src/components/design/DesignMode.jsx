@@ -27,12 +27,13 @@ export default function DesignMode({ hidden, set }) {
   const [info, setInfo] = useState(null);
   const [modal, setModal] = useState(null);
 
-  // 課題が変わったら作業状態をリセット（元アプリ loadDProblem 相当）。
+  // 課題が変わったら作業状態をリセットし、ページ最上部までスクロールを戻す。
   useEffect(() => {
     setDesign([]);
     setMessage(null);
     setChecks(null);
     setActiveTab('preview');
+    window.scrollTo(0, 0);
   }, [current]);
 
   // 設計のイミュータブルな更新ヘルパー。
@@ -100,8 +101,8 @@ export default function DesignMode({ hidden, set }) {
 
   return (
     <div className="mode-view mode-view-design" style={{ display: hidden ? 'none' : 'block' }}>
-      {/* 設計課題：1カラム（全幅）。課題番号ナビは左サイドバーへ移動済み。 */}
-      <div className="panel">
+      {/* 設計課題：1カラム（全幅）。スクロールしても上部に追従（sticky）。 */}
+      <div className="panel question-panel">
         <div className="question">
           <span className="question-chip">課題 {current + 1}</span>
           {problem.q}

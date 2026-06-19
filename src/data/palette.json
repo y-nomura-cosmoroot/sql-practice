@@ -5,6 +5,11 @@
     "items": ["SELECT", "FROM", "WHERE", "GROUP BY", "HAVING", "ORDER BY", "DESC", "LIMIT", "JOIN", "ON", "IN", "EXISTS", "NOT EXISTS"]
   },
   {
+    "title": "更新系",
+    "cls": "kw",
+    "items": ["INSERT", "INTO", "VALUES", "UPDATE", "SET", "DELETE"]
+  },
+  {
     "title": "集計関数",
     "cls": "fn",
     "items": ["COUNT", "SUM", "AVG"]
@@ -12,7 +17,7 @@
   {
     "title": "演算子・記号",
     "cls": "op",
-    "items": ["*", ",", "(", ")", ".", "=", ">=", "<=", ">", "<", ";"]
+    "items": ["*", "+", "||", ",", "(", ")", ".", "=", ">=", "<=", ">", "<", ";"]
   },
   {
     "title": "値",
