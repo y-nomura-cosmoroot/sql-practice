@@ -180,3 +180,133 @@
 .info-modal-btns {
   margin-top: 20px;
 }
+
+/* 使い方・ヘルプのモーダル（内容が長いので広め＆本文をスクロール） */
+.help-modal {
+  text-align: left;
+  max-width: 760px;
+}
+
+.help-body {
+  max-height: 64vh;
+  overflow: auto;
+  padding-right: 4px;
+}
+
+.help-section {
+  margin-bottom: 18px;
+}
+
+.help-section h4 {
+  font-family: var(--head-font);
+  font-weight: 700;
+  color: var(--slate);
+  font-size: 1rem;
+  margin-bottom: 6px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.help-section p {
+  color: var(--ink);
+  font-size: 0.9rem;
+  line-height: 1.7;
+  font-weight: 300;
+  margin-bottom: 6px;
+}
+
+.help-section ul {
+  margin: 0;
+  padding-left: 1.2em;
+}
+
+.help-section li {
+  color: var(--ink);
+  font-size: 0.9rem;
+  line-height: 1.7;
+  font-weight: 300;
+  margin-bottom: 4px;
+}
+
+.help-section strong {
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.help-section code {
+  font-family: var(--code-font);
+  background: var(--card);
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-size: 0.85em;
+  color: var(--mauve);
+}
+
+.help-ok {
+  color: var(--sage);
+  font-weight: 700;
+}
+
+.help-ng {
+  color: var(--red);
+  font-weight: 700;
+}
+
+/* 「違い」セクションはマウブ寄りで注意喚起 */
+.help-warn h4 {
+  color: var(--mauve);
+  border-bottom-color: var(--mauve);
+}
+
+.help-diff-wrap {
+  overflow-x: auto;
+  margin: 8px 0;
+}
+
+.help-diff {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 0.82rem;
+}
+
+.help-diff th,
+.help-diff td {
+  border: 1px solid #e5e7eb;
+  padding: 6px 8px;
+  text-align: left;
+  vertical-align: top;
+  line-height: 1.5;
+}
+
+.help-diff thead th {
+  background: var(--slate);
+  color: #fff;
+  font-family: var(--head-font);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.help-diff tbody th {
+  background: var(--card);
+  color: var(--ink);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.help-diff td {
+  color: var(--ink);
+  font-family: var(--code-font);
+  font-weight: 300;
+  word-break: break-word;
+}
+
+/* SQLite 側（最終列）を強調 */
+.help-diff td:last-child {
+  color: var(--slate);
+}
+
+.help-note {
+  color: var(--mid) !important;
+  font-size: 0.8rem !important;
+  margin-top: 8px;
+}

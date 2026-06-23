@@ -4,7 +4,7 @@
     "desc": "顧客",
     "cols": [
       { "c": "customer_id", "t": "INTEGER", "tag": "pk", "note": "主キー" },
-      { "c": "customer_name", "t": "TEXT" },
+      { "c": "customer_name", "t": "TEXT", "note": "顧客名" },
       { "c": "region", "t": "TEXT", "note": "地域" }
     ]
   },
@@ -13,7 +13,7 @@
     "desc": "製品",
     "cols": [
       { "c": "product_id", "t": "INTEGER", "tag": "pk", "note": "主キー" },
-      { "c": "product_name", "t": "TEXT" },
+      { "c": "product_name", "t": "TEXT", "note": "製品名" },
       { "c": "category", "t": "TEXT", "note": "カテゴリ" },
       { "c": "unit_price", "t": "INTEGER", "note": "単価" }
     ]

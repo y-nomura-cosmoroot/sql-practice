@@ -2,6 +2,7 @@ import { useState } from 'react';
 import Sidebar from './components/Sidebar.jsx';
 import SqlMode from './components/sql/SqlMode.jsx';
 import DesignMode from './components/design/DesignMode.jsx';
+import HelpModal from './components/common/HelpModal.jsx';
 import { useSqlDb } from './hooks/useSqlDb.js';
 import { useProblemSet } from './hooks/useProblemSet.js';
 import sqlProblems from './data/sqlProblems.json';
@@ -9,6 +10,7 @@ import designProblems from './data/designProblems.json';
 
 export default function App() {
   const [mode, setMode] = useState('sql');
+  const [helpOpen, setHelpOpen] = useState(false);
   const { db, loading, error } = useSqlDb();
 
   // 問題セットの状態は App に持ち上げ、サイドバー（ナビ）と各モード（中身）で共有する。
@@ -25,7 +27,18 @@ export default function App() {
   return (
     <div className="wrap">
       <header className="app-header">
-        <h1>SQL &amp; DB Design Practice</h1>
+        <div className="app-header-title">
+          <h1>SQL &amp; DB Design Practice</h1>
+          <button
+            type="button"
+            className="app-help-btn"
+            onClick={() => setHelpOpen(true)}
+            aria-label="使い方・ヘルプを開く"
+            title="使い方・ヘルプ"
+          >
+            ?
+          </button>
+        </div>
         <div className="app-header-meta">
           <span className="app-author">by yusuke nomura</span>
           <a
@@ -38,6 +51,8 @@ export default function App() {
           </a>
         </div>
       </header>
+
+      <HelpModal open={helpOpen} onClose={() => setHelpOpen(false)} />
 
       <div className="app-shell">
         <Sidebar

@@ -10,6 +10,13 @@
   padding-bottom: 4px;
 }
 
+/* タイトル＋ヘルプアイコンをまとめる */
+.app-header-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 .app-header h1 {
   font-family: var(--head-font);
   font-weight: 700;
@@ -17,6 +24,31 @@
   letter-spacing: 0.02em;
   font-size: 1.9rem;
   color: var(--ink);
+}
+
+/* タイトル横の「?」ヘルプアイコン */
+.app-help-btn {
+  flex: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid var(--slate);
+  background: var(--bg);
+  color: var(--slate);
+  font-family: var(--head-font);
+  font-weight: 700;
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, color 0.15s;
+}
+
+.app-help-btn:hover {
+  background: var(--slate);
+  color: #fff;
 }
 
 /* タイトル横の author ＋ リポジトリリンク */
