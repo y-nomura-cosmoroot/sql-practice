@@ -120,5 +120,155 @@
       ]
     },
     "model": "orders(order_id PK, order_date)\norder_items(order_item_id PK, order_id FK→orders, product_name, quantity)"
+  },
+  {
+    "cls": "lv-d6",
+    "levelLabel": "第2正規形(部分従属の除去)",
+    "q": "受注明細を「注文ID・商品ID・注文日・商品名・単価・数量」の1テーブルで持っている。主キーは(注文ID, 商品ID)の複合キーだが、注文日は注文IDだけに、商品名と単価は商品IDだけに従属していて冗長。部分関数従属を除去し、3テーブルに分けてください。（単価は商品ごとに一意に決まるものとする）",
+    "hint": "複合主キーの一部にしか従属しない列を別テーブルへ移します。orders(order_id PK, order_date) / products(product_id PK, product_name, unit_price) / order_items(order_id PK+FK→orders, product_id PK+FK→products, quantity)。明細に残すのは複合キー全体に従属する quantity だけ。",
+    "tablePool": ["orders", "products", "order_items", "customers"],
+    "columnPool": {
+      "orders": ["order_id", "order_date", "product_name", "unit_price", "quantity"],
+      "products": ["product_id", "product_name", "unit_price", "quantity", "order_id"],
+      "order_items": ["order_id", "product_id", "quantity", "order_date", "product_name", "unit_price"],
+      "customers": ["customer_id", "name"]
+    },
+    "answer": {
+      "orders": [
+        { "name": "order_id", "type": "INTEGER", "pk": true },
+        { "name": "order_date", "type": "DATE" }
+      ],
+      "products": [
+        { "name": "product_id", "type": "INTEGER", "pk": true },
+        { "name": "product_name", "type": "TEXT" },
+        { "name": "unit_price", "type": "INTEGER" }
+      ],
+      "order_items": [
+        { "name": "order_id", "type": "INTEGER", "pk": true, "ref": "orders" },
+        { "name": "product_id", "type": "INTEGER", "pk": true, "ref": "products" },
+        { "name": "quantity", "type": "INTEGER" }
+      ]
+    },
+    "model": "orders(order_id PK, order_date)\nproducts(product_id PK, product_name, unit_price)\norder_items(order_id PK FK→orders, product_id PK FK→products, quantity)"
+  },
+  {
+    "cls": "lv-d7",
+    "levelLabel": "1対1(主キー共有)",
+    "q": "ユーザーは、任意で本人確認用プロフィール（自己紹介・生年月日）を1件だけ持てる（持たない人もいる、1対1）。全員が持つ基本情報と、一部の人だけが持つ情報を2テーブルに分け、プロフィール側は代理キーを増やさずに設計してください。",
+    "hint": "1対1は子テーブルの主キーをそのまま親への外部キーにします（profile_id のような新しい代理キーは作らない）。users(user_id PK, username, email) / user_profiles(user_id PK かつ FK→users, bio, birth_date)。",
+    "tablePool": ["users", "user_profiles", "posts"],
+    "columnPool": {
+      "users": ["user_id", "username", "email", "bio", "birth_date"],
+      "user_profiles": ["user_id", "profile_id", "bio", "birth_date", "username", "email"],
+      "posts": ["post_id", "user_id", "title"]
+    },
+    "answer": {
+      "users": [
+        { "name": "user_id", "type": "INTEGER", "pk": true },
+        { "name": "username", "type": "TEXT" },
+        { "name": "email", "type": "TEXT" }
+      ],
+      "user_profiles": [
+        { "name": "user_id", "type": "INTEGER", "pk": true, "ref": "users" },
+        { "name": "bio", "type": "TEXT" },
+        { "name": "birth_date", "type": "DATE" }
+      ]
+    },
+    "model": "users(user_id PK, username, email)\nuser_profiles(user_id PK FK→users, bio, birth_date)"
+  },
+  {
+    "cls": "lv-d8",
+    "levelLabel": "同一テーブルへの複数FK",
+    "q": "口座間の送金を記録する。1件の送金は「送金元口座」と「送金先口座」を持ち、どちらも口座テーブルを参照する。口座は「名義・残高」、送金は「金額・送金日時」を持つ。同じテーブルを指す2つの外部キーを正しく設計してください。",
+    "hint": "役割の違う2つの列が、どちらも accounts を参照します。accounts(account_id PK, owner_name, balance) / transfers(transfer_id PK, from_account_id FK→accounts, to_account_id FK→accounts, amount, transferred_at)。送金日時は DATETIME。",
+    "tablePool": ["accounts", "transfers", "banks"],
+    "columnPool": {
+      "accounts": ["account_id", "owner_name", "balance", "amount"],
+      "transfers": ["transfer_id", "from_account_id", "to_account_id", "amount", "transferred_at", "owner_name", "balance"],
+      "banks": ["bank_id", "bank_name"]
+    },
+    "answer": {
+      "accounts": [
+        { "name": "account_id", "type": "INTEGER", "pk": true },
+        { "name": "owner_name", "type": "TEXT" },
+        { "name": "balance", "type": "INTEGER" }
+      ],
+      "transfers": [
+        { "name": "transfer_id", "type": "INTEGER", "pk": true },
+        { "name": "from_account_id", "type": "INTEGER", "ref": "accounts" },
+        { "name": "to_account_id", "type": "INTEGER", "ref": "accounts" },
+        { "name": "amount", "type": "INTEGER" },
+        { "name": "transferred_at", "type": "DATETIME" }
+      ]
+    },
+    "model": "accounts(account_id PK, owner_name, balance)\ntransfers(transfer_id PK, from_account_id FK→accounts, to_account_id FK→accounts, amount, transferred_at)"
+  },
+  {
+    "cls": "lv-d9",
+    "levelLabel": "多対多(中間に代理キー)",
+    "q": "俳優と映画は多対多。さらに「同じ俳優が同じ映画で複数の役を演じる」こともあり、出演ごとに役名を記録する。(俳優ID, 映画ID)の複合キーでは一意にできないため、中間テーブルに代理主キーを置いて設計してください。俳優は「氏名」、映画は「タイトル・公開日」を持つ。",
+    "hint": "同じ組合せが複数回起こり得る多対多は、中間テーブルに複合キーではなく代理主キー(casting_id)を置きます。actors(actor_id PK, name) / movies(movie_id PK, title, release_date) / castings(casting_id PK, actor_id FK→actors, movie_id FK→movies, role_name)。中間テーブルの actor_id・movie_id は外部キーだが主キーにはしない。",
+    "tablePool": ["actors", "movies", "castings", "directors"],
+    "columnPool": {
+      "actors": ["actor_id", "name", "movie_id", "role_name"],
+      "movies": ["movie_id", "title", "release_date", "actor_id"],
+      "castings": ["casting_id", "actor_id", "movie_id", "role_name", "name", "title"],
+      "directors": ["director_id", "name"]
+    },
+    "answer": {
+      "actors": [
+        { "name": "actor_id", "type": "INTEGER", "pk": true },
+        { "name": "name", "type": "TEXT" }
+      ],
+      "movies": [
+        { "name": "movie_id", "type": "INTEGER", "pk": true },
+        { "name": "title", "type": "TEXT" },
+        { "name": "release_date", "type": "DATE" }
+      ],
+      "castings": [
+        { "name": "casting_id", "type": "INTEGER", "pk": true },
+        { "name": "actor_id", "type": "INTEGER", "ref": "actors" },
+        { "name": "movie_id", "type": "INTEGER", "ref": "movies" },
+        { "name": "role_name", "type": "TEXT" }
+      ]
+    },
+    "model": "actors(actor_id PK, name)\nmovies(movie_id PK, title, release_date)\ncastings(casting_id PK, actor_id FK→actors, movie_id FK→movies, role_name)"
+  },
+  {
+    "cls": "lv-d10",
+    "levelLabel": "総合(完全正規化)",
+    "q": "1枚の請求書テーブルに「請求ID・請求日・顧客名・顧客住所・商品名・単価・数量」がすべて入っていて、1請求×複数商品で行が重複し、顧客情報も商品情報も冗長。これを 顧客・商品・請求・請求明細 の4テーブルに完全に正規化してください。（単価は商品ごとに一意に決まるものとする）",
+    "hint": "顧客と商品をマスタに切り出し、請求と明細を分けます。customers(customer_id PK, customer_name, customer_address) / products(product_id PK, product_name, unit_price) / invoices(invoice_id PK, invoice_date, customer_id FK→customers) / invoice_items(invoice_item_id PK, invoice_id FK→invoices, product_id FK→products, quantity)。明細には数量以外の冗長な値を残さない。",
+    "tablePool": ["customers", "products", "invoices", "invoice_items"],
+    "columnPool": {
+      "customers": ["customer_id", "customer_name", "customer_address", "invoice_date", "product_name"],
+      "products": ["product_id", "product_name", "unit_price", "quantity", "customer_name"],
+      "invoices": ["invoice_id", "invoice_date", "customer_id", "customer_name", "customer_address", "product_name"],
+      "invoice_items": ["invoice_item_id", "invoice_id", "product_id", "quantity", "unit_price", "product_name"]
+    },
+    "answer": {
+      "customers": [
+        { "name": "customer_id", "type": "INTEGER", "pk": true },
+        { "name": "customer_name", "type": "TEXT" },
+        { "name": "customer_address", "type": "TEXT" }
+      ],
+      "products": [
+        { "name": "product_id", "type": "INTEGER", "pk": true },
+        { "name": "product_name", "type": "TEXT" },
+        { "name": "unit_price", "type": "INTEGER" }
+      ],
+      "invoices": [
+        { "name": "invoice_id", "type": "INTEGER", "pk": true },
+        { "name": "invoice_date", "type": "DATE" },
+        { "name": "customer_id", "type": "INTEGER", "ref": "customers" }
+      ],
+      "invoice_items": [
+        { "name": "invoice_item_id", "type": "INTEGER", "pk": true },
+        { "name": "invoice_id", "type": "INTEGER", "ref": "invoices" },
+        { "name": "product_id", "type": "INTEGER", "ref": "products" },
+        { "name": "quantity", "type": "INTEGER" }
+      ]
+    },
+    "model": "customers(customer_id PK, customer_name, customer_address)\nproducts(product_id PK, product_name, unit_price)\ninvoices(invoice_id PK, invoice_date, customer_id FK→customers)\ninvoice_items(invoice_item_id PK, invoice_id FK→invoices, product_id FK→products, quantity)"
   }
 ]

@@ -1,4 +1,6 @@
+import { useState } from 'react';
 import Overlay from './Overlay.jsx';
+import Tabs from './Tabs.jsx';
 
 /**
  * SQLite（本アプリの実行エンジン = sql.js）と Oracle で書き方が異なる主な点。
@@ -83,16 +85,34 @@ const ORACLE_DIFFS = [
 ];
 
 /**
- * このサイトの使い方＋SQLite と Oracle の違いを表示するヘルプモーダル。
+ * ヘルプのタブ。ここに { key, label } を足せばタブが増える（DRY）。
+ */
+const HELP_TABS = [
+  { key: 'usage', label: 'このサイトの使い方' },
+  { key: 'changelog', label: '更新履歴' },
+];
+
+/**
+ * 更新履歴。新しい更新を 1 行足すだけで増える（古い順＝上から時系列）。
+ */
+const CHANGELOG = [
+  { date: '2026/6/23', items: ['サイト公開'] },
+  { date: '2026/6/29', items: ['設計編に上級問題を5問追加'] },
+];
+
+/**
+ * このサイトの使い方・更新履歴をタブで表示するヘルプモーダル。
  * @param {{ open:boolean, onClose:()=>void }} props
  */
 export default function HelpModal({ open, onClose }) {
+  const [tab, setTab] = useState('usage');
   return (
     <Overlay open={open} onClose={onClose}>
       <div className="modal info help-modal">
-        <h3 className="info-modal-title">このサイトの使い方</h3>
+        <h3 className="info-modal-title">ヘルプ</h3>
+        <Tabs tabs={HELP_TABS} active={tab} onChange={setTab} />
 
-        <div className="help-body">
+        <div className="help-body" style={{ display: tab === 'usage' ? 'block' : 'none' }}>
           <section className="help-section">
             <h4>このアプリについて</h4>
             <p>
@@ -162,6 +182,21 @@ export default function HelpModal({ open, onClose }) {
               ※ 上記以外にも細かな差異があります。このアプリの問題は SQLite の書き方で出題・判定しています。
             </p>
           </section>
+        </div>
+
+        <div className="help-body" style={{ display: tab === 'changelog' ? 'block' : 'none' }}>
+          <ul className="changelog">
+            {CHANGELOG.map((c) => (
+              <li className="changelog-item" key={c.date}>
+                <span className="changelog-date">{c.date}</span>
+                <ul className="changelog-items">
+                  {c.items.map((it, i) => (
+                    <li key={i}>{it}</li>
+                  ))}
+                </ul>
+              </li>
+            ))}
+          </ul>
         </div>
 
         <div className="modal-btns info-modal-btns">
