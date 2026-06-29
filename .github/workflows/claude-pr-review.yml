@@ -1,0 +1,50 @@
+name: Claude PR Review
+
+# PR が開かれた / 更新されたときに Claude が自動でレビューする。
+# 手動で再レビューしたいときは Actions タブから workflow_dispatch でも実行可能。
+on:
+  pull_request:
+    types: [opened, synchronize]
+  workflow_dispatch:
+
+# 同一 PR で新しい push があったら古いレビューはキャンセルする
+concurrency:
+  group: claude-pr-review-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read          # コードの読み取り
+      pull-requests: write     # レビューコメントの投稿
+      issues: write            # コメント投稿
+      id-token: write          # OIDC 認証
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0       # 差分を正しく取るため全履歴を取得
+
+      - name: Claude Code Review
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          # CLAUDE.md / .claude/rules を読んだ上で、この PR の差分をレビューする
+          prompt: |
+            この Pull Request の差分をレビューしてください。回答はすべて日本語で行うこと。
+
+            リポジトリ直下の CLAUDE.md と .claude/rules/ の各ルールを必ず踏まえること。
+            特に次の観点を重点的に確認し、`gh pr comment` でまとめてコメントを投稿してください:
+
+            - **DRY 違反**: 同じ文字列リテラル・定数・種類定義が複数箇所に直書きされていないか
+            - **判定ロジックの一貫性**: SQL の答え合わせは「実行結果の一致」（行順非依存）である前提を崩していないか（src/lib/compareResults.js）
+            - **データ外出しの原則**: 問題・解答・ヒント・設計課題は src/data/ の JSON と setup.sql に集約されているか（コードへの直書きでないか）
+            - **設計境界**: 純粋ロジックは src/lib/、共通UIは src/components/common/、CSS は機能別に src/styles/*.css へ分割されているか
+            - バグ・型/Null の取りこぼし・エッジケース・可読性
+
+            重大度（高 / 中 / 低）を付けて指摘を整理し、問題が無い箇所は褒めすぎず簡潔に。
+            指摘が無ければ「LGTM」と一言で返してよい。
+          # レビュー用に diff 取得とコメント投稿のためのコマンドを許可
+          claude_args: |
+            --allowed-tools "Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr comment:*)"
