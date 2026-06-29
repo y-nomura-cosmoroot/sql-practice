@@ -30,6 +30,9 @@ jobs:
         uses: anthropics/claude-code-action@v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          # Claude の最終回答を、このアクションが PR コメントとして投稿・更新する。
+          # エージェントに gh pr comment させない（コマンド置換が権限で弾かれるのを回避）。
+          track_progress: true
           # CLAUDE.md / .claude/rules を読んだ上で、この PR の差分をレビューする
           prompt: |
             この Pull Request の差分をレビューしてください。回答はすべて日本語で行うこと。
@@ -44,11 +47,9 @@ jobs:
             - バグ・型/Null の取りこぼし・エッジケース・可読性
 
             重大度（高 / 中 / 低）を付けて指摘を整理し、問題が無い箇所は褒めすぎず簡潔に。
-
-            レビュー結果は、指摘の有無にかかわらず必ず `gh pr comment` でこの PR に
-            1 件のコメントとして投稿すること（最終メッセージを返すだけで終わらせない）。
-            重大な指摘が無い場合も「LGTM（重大な指摘なし）」とコメントを投稿すること。
+            レビュー結果はこの回答にまとめて出力すること（PR への投稿はアクションが行う）。
+            重大な指摘が無い場合も「LGTM（重大な指摘なし）」と明記すること。
           # ルールやソースを読むためのファイル操作系（Read/Grep/Glob）と、
-          # diff 取得・コメント投稿のための gh コマンドを許可する。
+          # 差分取得のための gh コマンドを許可する（コメント投稿は track_progress が担当）。
           claude_args: |
-            --allowed-tools "Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr comment:*),Read,Grep,Glob"
+            --allowed-tools "Bash(gh pr diff:*),Bash(gh pr view:*),Read,Grep,Glob"
