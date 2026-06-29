@@ -30,6 +30,5 @@ yarn-error.log*
 .env.development
 .env.production
 /public/images/bk/
-.claude
 .serena
 .vscode/settings.json
