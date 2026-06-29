@@ -252,6 +252,47 @@
   font-weight: 700;
 }
 
+/* 更新履歴タブ：日付（左）＋内容（右） */
+.changelog {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.changelog-item {
+  display: flex;
+  gap: 14px;
+  padding: 10px 2px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.changelog-item:last-child {
+  border-bottom: none;
+}
+
+.changelog-date {
+  flex: 0 0 auto;
+  min-width: 86px;
+  font-family: var(--code-font);
+  font-weight: 700;
+  color: var(--slate);
+  font-size: 0.85rem;
+  padding-top: 1px;
+}
+
+.changelog-items {
+  margin: 0;
+  padding-left: 1.2em;
+}
+
+.changelog-items li {
+  color: var(--ink);
+  font-size: 0.9rem;
+  line-height: 1.7;
+  font-weight: 300;
+  margin-bottom: 2px;
+}
+
 /* 「違い」セクションはマウブ寄りで注意喚起 */
 .help-warn h4 {
   color: var(--mauve);
