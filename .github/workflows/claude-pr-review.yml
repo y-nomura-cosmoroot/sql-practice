@@ -34,8 +34,8 @@ jobs:
           prompt: |
             この Pull Request の差分をレビューしてください。回答はすべて日本語で行うこと。
 
-            リポジトリ直下の CLAUDE.md と .claude/rules/ の各ルールを必ず踏まえること。
-            特に次の観点を重点的に確認し、`gh pr comment` でまとめてコメントを投稿してください:
+            まず CLAUDE.md と .claude/rules/ の各ルールを読み、それを必ず踏まえること。
+            特に次の観点を重点的に確認すること:
 
             - **DRY 違反**: 同じ文字列リテラル・定数・種類定義が複数箇所に直書きされていないか
             - **判定ロジックの一貫性**: SQL の答え合わせは「実行結果の一致」（行順非依存）である前提を崩していないか（src/lib/compareResults.js）
@@ -44,7 +44,11 @@ jobs:
             - バグ・型/Null の取りこぼし・エッジケース・可読性
 
             重大度（高 / 中 / 低）を付けて指摘を整理し、問題が無い箇所は褒めすぎず簡潔に。
-            指摘が無ければ「LGTM」と一言で返してよい。
-          # レビュー用に diff 取得とコメント投稿のためのコマンドを許可
+
+            レビュー結果は、指摘の有無にかかわらず必ず `gh pr comment` でこの PR に
+            1 件のコメントとして投稿すること（最終メッセージを返すだけで終わらせない）。
+            重大な指摘が無い場合も「LGTM（重大な指摘なし）」とコメントを投稿すること。
+          # ルールやソースを読むためのファイル操作系（Read/Grep/Glob）と、
+          # diff 取得・コメント投稿のための gh コマンドを許可する。
           claude_args: |
-            --allowed-tools "Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr comment:*)"
+            --allowed-tools "Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr comment:*),Read,Grep,Glob"
